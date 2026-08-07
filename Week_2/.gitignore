@@ -1,1 +1,5 @@
 rough_work
+*.pdf
+*__pycache__
+file_handling/
+modules_and_packages/

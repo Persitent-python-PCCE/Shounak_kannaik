@@ -1,0 +1,5 @@
+2026-01-15 09:12:04 INFO User login successful for user_id=204
+2026-01-15 09:13:22 WARNING Disk usage at 82%
+2026-01-15 09:15:41 ERROR Database connection timeout
+2026-01-15 09:16:03 INFO Cache refreshed
+2026-01-15 09:18:55 ERROR Null pointer in payment module
