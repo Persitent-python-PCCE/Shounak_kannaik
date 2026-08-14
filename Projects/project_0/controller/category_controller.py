@@ -8,6 +8,7 @@ from models.category_model import (
     ShowCategoryProductsByNameRequest
 )
 from utils.ui import clear_screen, pause
+from utils.logger import logger
 
 class CategoryController:
     def __init__(self):
@@ -18,8 +19,10 @@ class CategoryController:
         category = CreateCategoryRequest(name=name)
         response_obj = self.category_service.create_category(category)
         if response_obj.error_message is None:
+            logger.info(f"Category created successfully: {name} (ID: {response_obj.category_id})")
             print(f"Category created successfully! category_id: {response_obj.category_id}")
         else:
+            logger.error(f"Failed to create category {name}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
 
     def show_all_categories(self) -> list:
@@ -55,8 +58,10 @@ class CategoryController:
         category = UpdateCategoryRequest(category_id=category_id, name=name)
         response_obj = self.category_service.update_category(category)
         if response_obj.affected_rows is not None and response_obj.error_message is None:
+            logger.info(f"Category {category_id} updated successfully.")
             print("Category updated successfully.")
         else:
+            logger.error(f"Failed to update category {category_id}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
 
     def delete_category(self):
@@ -74,8 +79,10 @@ class CategoryController:
         category = DeleteCategoryRequest(category_id=category_id)
         response_obj = self.category_service.delete_category(category)
         if response_obj.affected_rows is not None and response_obj.error_message is None:
+            logger.info(f"Category {category_id} deleted successfully.")
             print(f"Category with category_id {category_id} deleted successfully.")
         else:
+            logger.error(f"Failed to delete category {category_id}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
 
     def view_category_products(self):

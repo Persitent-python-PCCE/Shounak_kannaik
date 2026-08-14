@@ -5,6 +5,7 @@ from models.user_models import SearchUserRequest, SearchUserResponse
 from models.user_models import UpdateUserRequest, UpdateUserResponse
 from models.user_models import DeleteUserRequest, DeleteUserResponse
 from utils.ui import clear_screen, pause
+from utils.logger import logger
 
 class UserController:
     def __init__(self):
@@ -26,8 +27,10 @@ class UserController:
         responseObj = self.user_service.create_user(user)
         
         if responseObj.error_message is None:
+            logger.info(f"User created successfully: {username} (ID: {responseObj.user_id})")
             print(f"User created successfully! {responseObj.user_id}")
         else:
+            logger.warning(f"Failed to create user {username}: {responseObj.error_message}")
             print(f"Error: {responseObj.error_message}")
     
     def user_login(self) -> UserLoginResponse:
@@ -40,9 +43,11 @@ class UserController:
             
             responseObj = self.user_service.user_login(user)
             if responseObj.error_message is None:
+                logger.info(f"User login successful: {username}")
                 print(f"Login Successfull! Welcome {responseObj.username}!\n")
                 return responseObj
             else:
+                logger.warning(f"Failed login attempt for {username}: {responseObj.error_message}")
                 print(f"Error: {responseObj.error_message}")
     
     def show_all_users(self)-> list[ShowAllUsersResponse]:
@@ -83,12 +88,14 @@ class UserController:
         role = input("Update Role (admin, customer): ")
         
         user = UpdateUserRequest(user_id=user_id, username=username, name=name, email=email, password=password, role=role)
-        response_obj = self.user_service.update_user(user)
+        responseObj = self.user_service.update_user(user)
         
-        if response_obj.affected_rows != 0 and response_obj.error_message is None:
-            print("User updated successfully")
+        if responseObj.affected_rows is not None and responseObj.error_message is None:
+            logger.info(f"User {user_id} updated successfully by Admin.")
+            print("user updated successfully.")
         else:
-            print(f"Error: {response_obj.error_message}")
+            logger.error(f"Failed to update user {user_id}: {responseObj.error_message}")
+            print(f"Error: {responseObj.error_message}")
 
     def delete_user(self):
         self.show_all_users()
@@ -103,11 +110,13 @@ class UserController:
             print("Delete cancelled.")
             return
         user = DeleteUserRequest(user_id=user_id)
-        response_obj = self.user_service.delete_user(user)
-        if response_obj.affected_rows is not None and response_obj.error_message is None:
+        responseObj = self.user_service.delete_user(user)
+        if responseObj.affected_rows is not None and responseObj.error_message is None:
+            logger.info(f"User {user_id} deleted successfully by Admin.")
             print(f"User with user_id {user_id} deleted successfully.")
         else:
-            print(f"Error: {response_obj.error_message}")
+            logger.error(f"Failed to delete user {user_id}: {responseObj.error_message}")
+            print(f"Error: {responseObj.error_message}")
 
     def show_profile(self, current_user):
         """Display the logged-in user's profile details."""

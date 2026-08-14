@@ -4,6 +4,7 @@ from models.order_model import (
     UpdateOrderStatusRequest, CancelOrderByIdRequest
 )
 from utils.ui import clear_screen, pause
+from utils.logger import logger
 
 class OrderController:
     def __init__(self):
@@ -13,6 +14,7 @@ class OrderController:
         request = DirectBuyRequest(user_id=user_id, product_id=product_id, quantity=quantity)
         response = self.order_service.direct_buy(request)
         if response.success:
+            logger.info(f"User {user_id} successfully placed Order #{response.order_id} for Product {product_id} (Qty: {quantity})")
             print(f"""
 ------- Order Placed Successfully! -------
 Order ID    : {response.order_id}
@@ -21,6 +23,7 @@ Total Price : {response.total_amount}
 Order Date  : {response.order_date}
 ------------------------------------------""")
         else:
+            logger.error(f"User {user_id} failed to place order for Product {product_id}: {response.error_message}")
             print(f'Error: {response.error_message}')
 
     # ------------------------------------------------------------------ #
@@ -125,8 +128,10 @@ Order Date  : {response.order_date}
         request = CancelOrderRequest(user_id=user_id, order_id=order_id)
         response = self.order_service.cancel_order(request)
         if response.success:
+            logger.info(f"User {user_id} cancelled Order #{order_id}")
             print(f'Order #{order_id} has been cancelled and stock has been restored.')
         else:
+            logger.error(f"User {user_id} failed to cancel Order #{order_id}: {response.error_message}")
             print(f'Error: {response.error_message}')
         pause()
 
@@ -233,8 +238,10 @@ Order Date  : {response.order_date}
         request = UpdateOrderStatusRequest(order_id=order_id, status=status)
         response = self.order_service.update_order_status(request)
         if response.success:
+            logger.info(f"Admin updated Order #{order_id} status to '{status}'")
             print(f'Order #{order_id} status updated to "{status}".')
         else:
+            logger.error(f"Admin failed to update Order #{order_id} status: {response.error_message}")
             print(f'Error: {response.error_message}')
         pause()
 
@@ -259,7 +266,9 @@ Order Date  : {response.order_date}
         request = CancelOrderByIdRequest(order_id=order_id)
         response = self.order_service.admin_cancel_order(request)
         if response.success:
+            logger.info(f"Admin cancelled Order #{order_id}")
             print(f'Order #{order_id} has been cancelled and stock has been restored.')
         else:
+            logger.error(f"Admin failed to cancel Order #{order_id}: {response.error_message}")
             print(f'Error: {response.error_message}')
         pause()
