@@ -5,6 +5,7 @@ def get_connection():
         host = "localhost",
         user = "root",
         password = "root",
-        database = "e_commerce_platform_db"
+        database = "e_commerce_platform_db",
+        autocommit = True
     )
     return connection
