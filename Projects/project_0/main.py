@@ -234,6 +234,7 @@ def user_menu(current_user):
     product_controller = ProductController()
     cart_controller = CartController()
     order_controller = OrderController()
+    category_controller = CategoryController()
 
     while True:
         print("""
@@ -270,6 +271,9 @@ def user_menu(current_user):
                     continue
                 else:
                     print("Invalid choice.")
+
+            case "2":
+                category_controller.show_categories_user_menu()
 
             case "3":
                 cart_controller.view_cart_menu(current_user.user_id)

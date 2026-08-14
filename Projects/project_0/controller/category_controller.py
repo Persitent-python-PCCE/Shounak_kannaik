@@ -4,7 +4,8 @@ from models.category_model import (
     SearchCategoryRequest,
     UpdateCategoryRequest,
     DeleteCategoryRequest,
-    ViewCategoryProductsRequest
+    ViewCategoryProductsRequest,
+    ShowCategoryProductsByNameRequest
 )
 
 class CategoryController:
@@ -82,3 +83,41 @@ class CategoryController:
                 print("No products found in this category.")
         except ValueError as e:
             print(f"Error: {e}")
+
+    def show_categories_user_menu(self):
+        while True:
+            self.show_all_categories()
+
+            print("""
+        1. Show products by category
+        0. Go back
+            """)
+            choice = input('Enter your choice: ').strip()
+
+            if choice == '1':
+                self._show_products_by_category()
+            elif choice == '0':
+                break
+            else:
+                print('Invalid choice.')
+
+    def _show_products_by_category(self):
+        name = input('Enter category name: ').strip()
+        request = ShowCategoryProductsByNameRequest(category_name=name)
+        response = self.category_service.get_products_by_category_name(request)
+
+        if response.error_message:
+            print(f'Error: {response.error_message}')
+        elif not response.items:
+            print(f"No products found in category '{response.category_name}'.")
+        else:
+            print(f'\n--- Products in {response.category_name}: {len(response.items)} found ---')
+            print(f'{"─" * 58}')
+            print(f'  {"Product":<30} {"Price":>10} {"Stock":>10}')
+            print(f'{"─" * 58}')
+            for item in response.items:
+                print(f'  {item.name:<30} {item.unit_price:>10.2f} {item.stock_available:>10}')
+            print(f'{"─" * 58}')
+
+        print('\n        0. Go back')
+        input('Enter your choice: ')

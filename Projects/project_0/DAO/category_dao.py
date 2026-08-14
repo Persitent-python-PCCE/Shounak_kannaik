@@ -6,7 +6,8 @@ from models.category_model import (
     SearchCategoryRequest, SearchCategoryResponse,
     UpdateCategoryRequest, UpdateCategoryResponse,
     DeleteCategoryRequest, DeleteCategoryResponse,
-    ViewCategoryProductsRequest
+    ViewCategoryProductsRequest,
+    ShowCategoryProductsByNameRequest, CategoryProductModel, ShowCategoryProductsByNameResponse
 )
 
 class CategoryDAO:
@@ -127,5 +128,46 @@ class CategoryDAO:
             return rows
         except (Error, ValueError) as e:
             raise e
+        finally:
+            cursor.close()
+
+    def get_products_by_category_name(self, request: ShowCategoryProductsByNameRequest) -> ShowCategoryProductsByNameResponse:
+        cursor = self.con.cursor()
+        try:
+            # Verify category exists (case-insensitive)
+            cursor.execute(
+                "SELECT category_id, name FROM categories WHERE LOWER(name) = LOWER(%s);",
+                (request.category_name,)
+            )
+            cat_row = cursor.fetchone()
+            if cat_row is None:
+                return ShowCategoryProductsByNameResponse(
+                    category_name=request.category_name,
+                    items=[],
+                    error_message=f"Category '{request.category_name}' not found."
+                )
+
+            cat_id = cat_row[0]
+            cat_name = cat_row[1]
+
+            cursor.execute("""
+                SELECT p.product_id, p.name, p.unit_price, p.stock_available
+                FROM products p
+                WHERE p.category_id = %s
+                ORDER BY p.name;
+            """, (cat_id,))
+            rows = cursor.fetchall()
+            items = [
+                CategoryProductModel(
+                    product_id=r[0], name=r[1],
+                    unit_price=float(r[2]), stock_available=r[3]
+                )
+                for r in rows
+            ]
+            return ShowCategoryProductsByNameResponse(category_name=cat_name, items=items)
+        except Error as e:
+            return ShowCategoryProductsByNameResponse(
+                category_name=request.category_name, items=[], error_message=e.msg
+            )
         finally:
             cursor.close()

@@ -5,7 +5,8 @@ from models.category_model import (
     SearchCategoryRequest, SearchCategoryResponse,
     UpdateCategoryRequest, UpdateCategoryResponse,
     DeleteCategoryRequest, DeleteCategoryResponse,
-    ViewCategoryProductsRequest
+    ViewCategoryProductsRequest,
+    ShowCategoryProductsByNameRequest, ShowCategoryProductsByNameResponse
 )
 
 class CategoryService:
@@ -58,3 +59,8 @@ class CategoryService:
             return self.category_dao.view_category_products(category=category)
         except ValueError as e:
             raise e
+
+    def get_products_by_category_name(self, request: ShowCategoryProductsByNameRequest) -> ShowCategoryProductsByNameResponse:
+        if not request.category_name or request.category_name.strip() == '':
+            return ShowCategoryProductsByNameResponse(category_name='', items=[], error_message='Category name cannot be empty.')
+        return self.category_dao.get_products_by_category_name(request)
