@@ -274,6 +274,9 @@ def user_menu(current_user):
             case "3":
                 cart_controller.view_cart_menu(current_user.user_id)
 
+            case "4":
+                order_controller.view_orders_menu(current_user.user_id)
+
             case "0":
                 print("Logged out.")
                 break
