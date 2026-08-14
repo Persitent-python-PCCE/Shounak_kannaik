@@ -44,3 +44,22 @@ class DeleteCategoryResponse:
 class ViewCategoryProductsRequest:
     def __init__(self, category_id: int):
         self.category_id = category_id
+
+
+# --- User-facing: browse products by category name ---
+class ShowCategoryProductsByNameRequest:
+    def __init__(self, category_name: str):
+        self.category_name = category_name
+
+class CategoryProductModel:
+    def __init__(self, product_id: int, name: str, unit_price: float, stock_available: int):
+        self.product_id = product_id
+        self.name = name
+        self.unit_price = unit_price
+        self.stock_available = stock_available
+
+class ShowCategoryProductsByNameResponse:
+    def __init__(self, category_name: str, items: list, error_message: str = None):
+        self.category_name = category_name
+        self.items = items          # list of CategoryProductModel
+        self.error_message = error_message

@@ -11,7 +11,7 @@ class ProductController:
         self.product_service = ProductService()
 
     def _print_product(self, index: int, p):
-        print(f"  {index}. product_id: {p.product_id}\t| category_id: {p.category_id}\t| name: {p.name}"
+        print(f"  {index}. product_id: {p.product_id}\t| category: {p.category}\t| name: {p.name}"
               f"\t| price: {p.unit_price}\t| stock: {p.stock_available}")
 
     def create_product(self):

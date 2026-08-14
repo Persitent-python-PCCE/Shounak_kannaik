@@ -29,14 +29,15 @@ class ProductDAO:
     def show_all_products(self) -> list:
         cursor = self.con.cursor()
         try:
-            query = "SELECT product_id, category_id, name, description, unit_price, stock_available, created_at FROM products ORDER BY product_id;"
+            query = """SELECT p.product_id, c.name as 'category', p.name, p.description, p.unit_price, p.stock_available, p.created_at FROM products p 
+                JOIN categories c ON p.category_id = c.category_id ORDER BY p.product_id;"""
             cursor.execute(query)
             query_response = cursor.fetchall()
             response = []
             for row in query_response:
                 obj = ShowAllProductsResponse(
                     product_id=row[0],
-                    category_id=row[1],
+                    category=row[1],
                     name=row[2],
                     description=row[3],
                     unit_price=row[4],
@@ -53,10 +54,11 @@ class ProductDAO:
         cursor = self.con.cursor()
         try:
             query = """
-                SELECT product_id, category_id, name, description, unit_price, stock_available, created_at
-                FROM products
-                WHERE name LIKE %s
-                ORDER BY product_id;
+                SELECT p.product_id, c.name, p.name, p.description, p.unit_price, p.stock_available, p.created_at
+                FROM products p
+                JOIN categories c ON p.category_id = c.category_id
+                WHERE p.name LIKE %s
+                ORDER BY p.product_id;
             """
             values = (f"%{product.name}%",)
             cursor.execute(query, values)
@@ -65,7 +67,7 @@ class ProductDAO:
             for row in rows:
                 obj = SearchProductResponse(
                     product_id=row[0],
-                    category_id=row[1],
+                    category=row[1],
                     name=row[2],
                     description=row[3],
                     unit_price=row[4],

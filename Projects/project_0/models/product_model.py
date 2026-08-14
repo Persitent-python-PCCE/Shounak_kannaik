@@ -12,10 +12,10 @@ class CreateProductResponse:
         self.error_message = error_message
 
 class ShowAllProductsResponse:
-    def __init__(self, product_id: int, category_id: int, name: str, description: str,
+    def __init__(self, product_id: int, category: str, name: str, description: str,
                  unit_price: float, stock_available: int, created_at):
         self.product_id = product_id
-        self.category_id = category_id
+        self.category = category
         self.name = name
         self.description = description
         self.unit_price = unit_price
@@ -27,10 +27,10 @@ class SearchProductRequest:
         self.name = name
 
 class SearchProductResponse:
-    def __init__(self, product_id: int, category_id: int, name: str, description: str,
+    def __init__(self, product_id: int, category: str, name: str, description: str,
                  unit_price: float, stock_available: int, created_at, error_message: str):
         self.product_id = product_id
-        self.category_id = category_id
+        self.category = category
         self.name = name
         self.description = description
         self.unit_price = unit_price
