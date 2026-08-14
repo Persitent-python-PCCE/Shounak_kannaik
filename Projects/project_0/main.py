@@ -3,48 +3,57 @@ from controller.category_controller import CategoryController
 from controller.product_controller import ProductController
 from controller.cart_controller import CartController
 from controller.order_controller import OrderController
+from utils.ui import clear_screen, pause
 
 
 def main():
     user_controller = UserController()
-    
+
     while True:
+        clear_screen()
         print("""
         ------------- Welcome to EZ Buy -------------
         1. Login
         2. Create User
         0. Exit
         """)
-        
+
         choice = input("Enter your choice: ")
-        
+
         if choice == "1":
             current_user = user_controller.user_login()
             if current_user is not None:
                 if current_user.role == "admin":
-                    admin_menu(user_controller)
+                    admin_menu(user_controller, current_user)
                 else:
                     user_menu(current_user)
+            else:
+                pause()
         elif choice == "2":
             user_controller.create_user()
+            pause()
         elif choice == "0":
             break
         else:
             print("Invalid choice. Please try again.")
+            pause()
 
 
 
-def admin_menu(user_controller: UserController):
+def admin_menu(user_controller: UserController, current_user):
     category_controller = CategoryController()
     product_controller = ProductController()
+    order_controller = OrderController()
 
     while True:
+        clear_screen()
         print("""
             ------------- EZ Buy Admin -------------
             1. Users
             2. Products
             3. Categories
             4. Orders
+            5. My Profile
             0. Exit
             """)
 
@@ -53,6 +62,7 @@ def admin_menu(user_controller: UserController):
         match choice:
             case "1":
                 while True:
+                    clear_screen()
                     print("""
                     ------------- Users -------------
                     1. View All Users
@@ -67,24 +77,30 @@ def admin_menu(user_controller: UserController):
                     match user_choice:
                         case "1":
                             user_controller.show_all_users()
+                            pause()
 
                         case "2":
                             user_controller.search_user()
+                            pause()
 
                         case "3":
                             user_controller.update_user()
+                            pause()
 
                         case "4":
                             user_controller.delete_user()
+                            pause()
 
                         case "0":
                             break
 
                         case _:
                             print("Invalid choice")
+                            pause()
 
             case "2":
                 while True:
+                    clear_screen()
                     print("""
                     ------------- Products -------------
                     1. View All Products
@@ -100,27 +116,34 @@ def admin_menu(user_controller: UserController):
                     match product_choice:
                         case "1":
                             product_controller.show_all_products()
+                            pause()
 
                         case "2":
                             product_controller.search_product()
+                            pause()
 
                         case "3":
                             product_controller.create_product()
+                            pause()
 
                         case "4":
                             product_controller.update_product()
+                            pause()
 
                         case "5":
                             product_controller.delete_product()
+                            pause()
 
                         case "0":
                             break
 
                         case _:
                             print("Invalid choice")
+                            pause()
 
             case "3":
                 while True:
+                    clear_screen()
                     print("""
                     ------------- Categories -------------
                     1. View All Categories
@@ -136,27 +159,34 @@ def admin_menu(user_controller: UserController):
                     match category_choice:
                         case "1":
                             category_controller.show_all_categories()
+                            pause()
 
                         case "2":
                             category_controller.view_category_products()
+                            pause()
 
                         case "3":
                             category_controller.create_category()
+                            pause()
 
                         case "4":
                             category_controller.update_category()
+                            pause()
 
                         case "5":
                             category_controller.delete_category()
+                            pause()
 
                         case "0":
                             break
 
                         case _:
                             print("Invalid choice")
+                            pause()
 
             case "4":
                 while True:
+                    clear_screen()
                     print("""
                     ------------- Orders -------------
                     1. View All Orders
@@ -171,32 +201,37 @@ def admin_menu(user_controller: UserController):
 
                     match order_choice:
                         case "1":
-                            print("View all orders")
+                            order_controller.admin_view_all_orders()
 
                         case "2":
-                            print("Search order")
+                            order_controller.admin_search_order()
 
                         case "3":
-                            print("View order details")
+                            order_controller.admin_view_order_details()
 
                         case "4":
-                            print("Update order status")
+                            order_controller.admin_update_order_status()
 
                         case "5":
-                            print("Cancel order")
+                            order_controller.admin_cancel_order()
 
                         case "0":
                             break
 
                         case _:
                             print("Invalid choice")
+                            pause()
 
             case "0":
                 print("Exiting...")
                 break
 
+            case "5":
+                user_controller.show_profile(current_user)
+
             case _:
                 print("Invalid choice")
+                pause()
 
 
 def browse_products_action(current_user, product_controller: ProductController, cart_controller: CartController, order_controller: OrderController, action: str):
@@ -231,14 +266,16 @@ def browse_products_action(current_user, product_controller: ProductController, 
 
 
 def user_menu(current_user):
+    user_controller = UserController()
     product_controller = ProductController()
     cart_controller = CartController()
     order_controller = OrderController()
     category_controller = CategoryController()
 
     while True:
-        print("""
-        ------------- EZ Buy -------------
+        clear_screen()
+        print(f"""
+        ------------- EZ Buy | {current_user.username} -------------
         1. Show Products
         2. Show Categories
         3. My Cart
@@ -251,26 +288,32 @@ def user_menu(current_user):
 
         match choice:
             case "1":
-                products = product_controller.show_all_products()
-                if not products:
-                    continue
+                while True:
+                    clear_screen()
+                    products = product_controller.show_all_products()
+                    if not products:
+                        pause()
+                        break
 
-                print("""
+                    print("""
         What would you like to do?
-        1. Buy a product 
+        1. Buy a product
         2. Add product to cart
         0. Back
-                """)
-                sub = input("Enter your choice: ").strip().lower()
+                    """)
+                    sub = input("Enter your choice: ").strip()
 
-                if sub == "1":
-                    browse_products_action(current_user, product_controller, cart_controller, order_controller, "buy")
-                elif sub == "2":
-                    browse_products_action(current_user, product_controller, cart_controller, order_controller, "add_to_cart")
-                elif sub == "0":
-                    continue
-                else:
-                    print("Invalid choice.")
+                    if sub == "1":
+                        browse_products_action(current_user, product_controller, cart_controller, order_controller, "buy")
+                        pause()
+                    elif sub == "2":
+                        browse_products_action(current_user, product_controller, cart_controller, order_controller, "add_to_cart")
+                        pause()
+                    elif sub == "0":
+                        break
+                    else:
+                        print("Invalid choice.")
+                        pause()
 
             case "2":
                 category_controller.show_categories_user_menu()
@@ -281,12 +324,18 @@ def user_menu(current_user):
             case "4":
                 order_controller.view_orders_menu(current_user.user_id)
 
+            case "5":
+                user_controller.show_profile(current_user)
+
             case "0":
-                print("Logged out.")
+                clear_screen()
+                print("Logged out. Goodbye!")
+                pause("Press Enter to return to the main menu...")
                 break
 
             case _:
-                print("Coming soon...")
+                print("Invalid choice.")
+                pause()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from models.cart_model import (
     RemoveCartItemRequest,
     CheckoutCartRequest
 )
+from utils.ui import clear_screen, pause
 
 class CartController:
     def __init__(self):
@@ -40,6 +41,7 @@ class CartController:
 
     def view_cart_menu(self, user_id: int):
         while True:
+            clear_screen()
             cart = self._display_cart(user_id)
 
             print("""
@@ -51,6 +53,7 @@ class CartController:
 
             if choice == '1':
                 self._checkout(user_id)
+                pause()
                 break  # Return to user menu after checkout
 
             elif choice == '2':
@@ -60,6 +63,7 @@ class CartController:
                 break
             else:
                 print('Invalid choice.')
+                pause()
 
     def _update_cart_menu(self, user_id: int, cart):
         if not cart.items:
@@ -77,14 +81,17 @@ class CartController:
             item = self._find_item_in_cart(cart.items, name)
             if item is None:
                 print(f"No item named '{name}' found in your cart.")
+                pause()
                 return
             try:
                 new_qty = int(input(f'Enter new quantity (current: {item.quantity}): ').strip())
                 if new_qty <= 0:
                     print('Quantity must be greater than zero.')
+                    pause()
                     return
             except ValueError:
                 print('Invalid quantity.')
+                pause()
                 return
             req = UpdateCartItemRequest(user_id=user_id, product_id=item.product_id, new_quantity=new_qty)
             res = self.cart_service.update_cart_item(req)
@@ -92,12 +99,14 @@ class CartController:
                 print('Cart updated successfully.')
             else:
                 print(f'Error: {res.error_message}')
+            pause()
 
         elif choice == '2':
             name = input('Enter the product name to remove: ').strip()
             item = self._find_item_in_cart(cart.items, name)
             if item is None:
                 print(f"No item named '{name}' found in your cart.")
+                pause()
                 return
             req = RemoveCartItemRequest(user_id=user_id, product_id=item.product_id)
             res = self.cart_service.remove_cart_item(req)
@@ -105,11 +114,14 @@ class CartController:
                 print(f"'{item.product_name}' removed from cart.")
             else:
                 print(f'Error: {res.error_message}')
+            pause()
 
         elif choice == '0':
             return
         else:
             print('Invalid choice.')
+            pause()
+
 
     def _find_item_in_cart(self, items: list, name: str):
         """Case-insensitive exact match against cart items."""

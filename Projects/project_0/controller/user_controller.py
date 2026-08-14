@@ -4,6 +4,7 @@ from models.user_models import ShowAllUsersResponse
 from models.user_models import SearchUserRequest, SearchUserResponse
 from models.user_models import UpdateUserRequest, UpdateUserResponse
 from models.user_models import DeleteUserRequest, DeleteUserResponse
+from utils.ui import clear_screen, pause
 
 class UserController:
     def __init__(self):
@@ -68,7 +69,12 @@ class UserController:
     
     def update_user(self):
         self.show_all_users()
-        user_id = int(input("Enter the user_id to update: "))
+        try:
+            user_id = int(input("Enter the user_id to update: "))
+        except ValueError:
+            print("Invalid user_id.")
+            pause()
+            return
         print("Enter the new details (if no updates required then leave blank)")
         name = input("Update Name: ")
         username = input("Update Username: ")
@@ -86,7 +92,12 @@ class UserController:
 
     def delete_user(self):
         self.show_all_users()
-        user_id = int(input("Enter the user_id to delete: "))
+        try:
+            user_id = int(input("Enter the user_id to delete: "))
+        except ValueError:
+            print("Invalid user_id.")
+            pause()
+            return
         confirm = input(f"Are you sure you want to delete user with user_id {user_id}? (yes/no): ")
         if confirm.lower() != "yes":
             print("Delete cancelled.")
@@ -97,3 +108,22 @@ class UserController:
             print(f"User with user_id {user_id} deleted successfully.")
         else:
             print(f"Error: {response_obj.error_message}")
+
+    def show_profile(self, current_user):
+        """Display the logged-in user's profile details."""
+        clear_screen()
+        # Fetch full profile via username search
+        user = self.user_service.search_user(SearchUserRequest(username=current_user.username))
+        print()
+        print('  ─' * 30)
+        print(f'  {"My Profile":^58}')
+        print('  ─' * 30)
+        if user.error_message:
+            print(f'  Error loading profile: {user.error_message}')
+        else:
+            print(f'  {"Name":<12}: {user.name}')
+            print(f'  {"Username":<12}: {user.username}')
+            print(f'  {"Email":<12}: {user.email}')
+            print(f'  {"Role":<12}: {user.role.capitalize()}')
+        print('  ─' * 30)
+        pause()

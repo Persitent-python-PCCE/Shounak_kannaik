@@ -61,3 +61,31 @@ class CancelOrderResponse:
         self.success = success
         self.error_message = error_message
 
+# --- All Orders Management ---
+class AllOrdersSummaryModel:
+    def __init__(self, order_id: int, user_id: int, username: str, order_date, status: str, total_amount: float):
+        self.order_id = order_id
+        self.user_id = user_id
+        self.username = username
+        self.order_date = order_date
+        self.status = status
+        self.total_amount = total_amount
+
+class ViewAllOrdersResponse:
+    def __init__(self, orders: list, error_message: str = None):
+        self.orders = orders          # list of AllOrdersSummaryModel
+        self.error_message = error_message
+
+class UpdateOrderStatusRequest:
+    def __init__(self, order_id: int, status: str):
+        self.order_id = order_id
+        self.status = status
+
+class UpdateOrderStatusResponse:
+    def __init__(self, success: bool, error_message: str = None):
+        self.success = success
+        self.error_message = error_message
+
+class CancelOrderByIdRequest:
+    def __init__(self, order_id: int):
+        self.order_id = order_id

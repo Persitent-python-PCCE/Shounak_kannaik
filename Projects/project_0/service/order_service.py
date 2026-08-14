@@ -2,7 +2,9 @@ from DAO.order_dao import OrderDAO
 from models.order_model import (
     DirectBuyRequest, DirectBuyResponse,
     ViewOrdersResponse, ViewOrderDetailsResponse,
-    CancelOrderRequest, CancelOrderResponse
+    CancelOrderRequest, CancelOrderResponse,
+    ViewAllOrdersResponse, UpdateOrderStatusRequest,
+    UpdateOrderStatusResponse, CancelOrderByIdRequest
 )
 
 class OrderService:
@@ -31,4 +33,32 @@ class OrderService:
         if not request.order_id:
             return CancelOrderResponse(success=False, error_message='order_id is required.')
         return self.order_dao.cancel_order(request)
+
+    # --- All Orders Management ---
+    
+    def get_all_orders(self) -> ViewAllOrdersResponse:
+        return self.order_dao.get_all_orders()
+
+    def search_order(self, order_id: int) -> ViewAllOrdersResponse:
+        if not order_id:
+            return ViewAllOrdersResponse(orders=[], error_message='order_id is required.')
+        return self.order_dao.search_order(order_id)
+
+    def get_admin_order_details(self, order_id: int) -> ViewOrderDetailsResponse:
+        if not order_id:
+            return ViewOrderDetailsResponse(order=None, items=[], error_message='order_id is required.')
+        return self.order_dao.get_admin_order_details(order_id)
+
+    def update_order_status(self, request: UpdateOrderStatusRequest) -> UpdateOrderStatusResponse:
+        if not request.order_id or not request.status:
+            return UpdateOrderStatusResponse(success=False, error_message='order_id and status are required.')
+        valid_statuses = ['placed', 'processing', 'shipped', 'completed', 'cancelled']
+        if request.status.lower() not in valid_statuses:
+            return UpdateOrderStatusResponse(success=False, error_message=f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
+        return self.order_dao.update_order_status(request)
+
+    def admin_cancel_order(self, request: CancelOrderByIdRequest) -> CancelOrderResponse:
+        if not request.order_id:
+            return CancelOrderResponse(success=False, error_message='order_id is required.')
+        return self.order_dao.admin_cancel_order(request)
 
