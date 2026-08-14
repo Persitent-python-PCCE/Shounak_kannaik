@@ -339,4 +339,11 @@ def user_menu(current_user):
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    from utils.ui import clear_screen
+    try:
+        main()
+    except (KeyboardInterrupt, EOFError):
+        clear_screen()
+        print("\nExiting EZ Buy... Goodbye!")
+        sys.exit(0)

@@ -78,7 +78,12 @@ class ProductController:
 
     def update_product(self):
         self.show_all_products()
-        product_id = int(input("Enter the product_id to update: "))
+        try:
+            product_id = int(input("Enter the product_id to update: "))
+        except ValueError:
+            print("Invalid product_id.")
+            pause()
+            return
         print("Enter the new details (leave blank to keep current value):")
         name = input("Update Name: ")
         category_id = input("Update category_id: ").strip()
@@ -102,7 +107,12 @@ class ProductController:
 
     def delete_product(self):
         self.show_all_products()
-        product_id = int(input("Enter the product_id to delete: "))
+        try:
+            product_id = int(input("Enter the product_id to delete: "))
+        except ValueError:
+            print("Invalid product_id.")
+            pause()
+            return
         confirm = input(f"Are you sure you want to delete product with product_id {product_id}? (y/n): ")
         if confirm.lower() != "y":
             print("Delete cancelled.")
