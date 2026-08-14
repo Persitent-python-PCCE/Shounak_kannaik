@@ -4,7 +4,10 @@ from models.order_model import (
     DirectBuyRequest, DirectBuyResponse,
     OrderSummaryModel, ViewOrdersResponse,
     OrderItemModel, ViewOrderDetailsResponse,
-    CancelOrderRequest, CancelOrderResponse
+    CancelOrderRequest, CancelOrderResponse,
+    AllOrdersSummaryModel, ViewAllOrdersResponse,
+    UpdateOrderStatusRequest, UpdateOrderStatusResponse,
+    CancelOrderByIdRequest
 )
 
 class OrderDAO:
@@ -146,3 +149,141 @@ class OrderDAO:
         finally:
             cursor.close()
 
+    # --- All Orders Management (Admin) ---
+
+    def get_all_orders(self) -> ViewAllOrdersResponse:
+        cursor = self.con.cursor()
+        try:
+            query = """
+                SELECT o.order_id, o.user_id, u.username, o.order_date, o.status, o.total_amount
+                FROM orders o
+                JOIN users u ON o.user_id = u.user_id
+                ORDER BY o.order_date DESC;
+            """
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            orders = [
+                AllOrdersSummaryModel(
+                    order_id=row[0], user_id=row[1], username=row[2],
+                    order_date=row[3], status=row[4], total_amount=float(row[5])
+                )
+                for row in rows
+            ]
+            return ViewAllOrdersResponse(orders=orders)
+        except Error as e:
+            return ViewAllOrdersResponse(orders=[], error_message=e.msg)
+        finally:
+            cursor.close()
+
+    def search_order(self, order_id: int) -> ViewAllOrdersResponse:
+        cursor = self.con.cursor()
+        try:
+            query = """
+                SELECT o.order_id, o.user_id, u.username, o.order_date, o.status, o.total_amount
+                FROM orders o
+                JOIN users u ON o.user_id = u.user_id
+                WHERE o.order_id = %s;
+            """
+            cursor.execute(query, (order_id,))
+            row = cursor.fetchone()
+            if row is None:
+                return ViewAllOrdersResponse(orders=[], error_message="Order not found.")
+            orders = [
+                AllOrdersSummaryModel(
+                    order_id=row[0], user_id=row[1], username=row[2],
+                    order_date=row[3], status=row[4], total_amount=float(row[5])
+                )
+            ]
+            return ViewAllOrdersResponse(orders=orders)
+        except Error as e:
+            return ViewAllOrdersResponse(orders=[], error_message=e.msg)
+        finally:
+            cursor.close()
+
+    def get_admin_order_details(self, order_id: int) -> ViewOrderDetailsResponse:
+        cursor = self.con.cursor()
+        try:
+            cursor.execute(
+                "SELECT order_id, order_date, status, total_amount FROM orders WHERE order_id = %s;",
+                (order_id,)
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return ViewOrderDetailsResponse(order=None, items=[], error_message='Order not found.')
+            order = OrderSummaryModel(order_id=row[0], order_date=row[1], status=row[2], total_amount=float(row[3]))
+
+            cursor.execute("""
+                SELECT oi.product_id, p.name, oi.quantity, oi.unit_price,
+                       (oi.quantity * oi.unit_price) AS subtotal
+                FROM order_items oi
+                JOIN products p ON p.product_id = oi.product_id
+                WHERE oi.order_id = %s
+                ORDER BY p.name;
+            """, (order_id,))
+            item_rows = cursor.fetchall()
+            items = [
+                OrderItemModel(
+                    product_id=r[0], product_name=r[1], quantity=r[2],
+                    unit_price=float(r[3]), subtotal=float(r[4])
+                )
+                for r in item_rows
+            ]
+            return ViewOrderDetailsResponse(order=order, items=items)
+        except Error as e:
+            return ViewOrderDetailsResponse(order=None, items=[], error_message=e.msg)
+        finally:
+            cursor.close()
+
+    def update_order_status(self, request: UpdateOrderStatusRequest) -> UpdateOrderStatusResponse:
+        cursor = self.con.cursor()
+        try:
+            cursor.execute(
+                "UPDATE orders SET status = %s WHERE order_id = %s;",
+                (request.status, request.order_id)
+            )
+            self.con.commit()
+            if cursor.rowcount == 0:
+                return UpdateOrderStatusResponse(success=False, error_message="Order not found or status already set to this value.")
+            return UpdateOrderStatusResponse(success=True)
+        except Error as e:
+            self.con.rollback()
+            return UpdateOrderStatusResponse(success=False, error_message=e.msg)
+        finally:
+            cursor.close()
+
+    def admin_cancel_order(self, request: CancelOrderByIdRequest) -> CancelOrderResponse:
+        cursor = self.con.cursor()
+        try:
+            self.con.start_transaction()
+            cursor.execute(
+                "SELECT status FROM orders WHERE order_id = %s FOR UPDATE;",
+                (request.order_id,)
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return CancelOrderResponse(success=False, error_message='Order not found.')
+
+            current_status = row[0]
+            if current_status == 'completed':
+                return CancelOrderResponse(success=False, error_message='Cannot cancel a completed order.')
+            if current_status == 'cancelled':
+                return CancelOrderResponse(success=False, error_message='Order is already cancelled.')
+
+            cursor.execute("""
+                UPDATE products p
+                JOIN order_items oi ON oi.product_id = p.product_id
+                SET p.stock_available = p.stock_available + oi.quantity
+                WHERE oi.order_id = %s;
+            """, (request.order_id,))
+
+            cursor.execute(
+                "UPDATE orders SET status = 'cancelled' WHERE order_id = %s;",
+                (request.order_id,)
+            )
+            self.con.commit()
+            return CancelOrderResponse(success=True)
+        except Error as e:
+            self.con.rollback()
+            return CancelOrderResponse(success=False, error_message=e.msg)
+        finally:
+            cursor.close()

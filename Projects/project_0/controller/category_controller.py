@@ -7,6 +7,7 @@ from models.category_model import (
     ViewCategoryProductsRequest,
     ShowCategoryProductsByNameRequest
 )
+from utils.ui import clear_screen, pause
 
 class CategoryController:
     def __init__(self):
@@ -43,7 +44,12 @@ class CategoryController:
 
     def update_category(self):
         self.show_all_categories()
-        category_id = int(input("Enter the category_id to update: "))
+        try:
+            category_id = int(input("Enter the category_id to update: "))
+        except ValueError:
+            print("Invalid category_id.")
+            pause()
+            return
         print("Enter the new details (leave blank to keep current value):")
         name = input("Update Name: ").strip()
         category = UpdateCategoryRequest(category_id=category_id, name=name)
@@ -55,7 +61,12 @@ class CategoryController:
 
     def delete_category(self):
         self.show_all_categories()
-        category_id = int(input("Enter the category_id to delete: "))
+        try:
+            category_id = int(input("Enter the category_id to delete: "))
+        except ValueError:
+            print("Invalid category_id.")
+            pause()
+            return
         confirm = input(f"Are you sure you want to delete category with category_id {category_id}? (yes/no): ")
         if confirm.lower() != "yes":
             print("Delete cancelled.")
@@ -69,7 +80,12 @@ class CategoryController:
 
     def view_category_products(self):
         self.show_all_categories()
-        category_id = int(input("Enter the category_id to view its products: "))
+        try:
+            category_id = int(input("Enter the category_id to view its products: "))
+        except ValueError:
+            print("Invalid category_id.")
+            pause()
+            return
         category = ViewCategoryProductsRequest(category_id=category_id)
         try:
             products = self.category_service.view_category_products(category)
@@ -86,6 +102,7 @@ class CategoryController:
 
     def show_categories_user_menu(self):
         while True:
+            clear_screen()
             self.show_all_categories()
 
             print("""
@@ -100,6 +117,7 @@ class CategoryController:
                 break
             else:
                 print('Invalid choice.')
+                pause()
 
     def _show_products_by_category(self):
         name = input('Enter category name: ').strip()
