@@ -53,7 +53,7 @@ class UserController:
                 
             
     def search_user(self):
-        username = input("Enter username to search (or 0 to cancel): ")
+        username = input("Enter username to search (or 0 to go back): ")
         if username == "0":
             return
             

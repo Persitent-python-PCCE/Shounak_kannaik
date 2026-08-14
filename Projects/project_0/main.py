@@ -271,6 +271,9 @@ def user_menu(current_user):
                 else:
                     print("Invalid choice.")
 
+            case "3":
+                cart_controller.view_cart_menu(current_user.user_id)
+
             case "0":
                 print("Logged out.")
                 break
