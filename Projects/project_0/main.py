@@ -329,6 +329,7 @@ def user_menu(current_user):
 
             case "0":
                 clear_screen()
+                logger.info(f"User logged out: {current_user.username}")
                 print("Logged out. Goodbye!")
                 pause("Press Enter to return to the main menu...")
                 break
@@ -341,9 +342,12 @@ def user_menu(current_user):
 if __name__ == "__main__":
     import sys
     from utils.ui import clear_screen
+    from utils.logger import logger
     try:
+        logger.info("Application started")
         main()
     except (KeyboardInterrupt, EOFError):
+        logger.warning("Application forcefully terminated by user (KeyboardInterrupt/EOFError)")
         clear_screen()
         print("\nExiting EZ Buy... Goodbye!")
         sys.exit(0)

@@ -5,6 +5,8 @@ from models.product_model import (
     UpdateProductRequest,
     DeleteProductRequest
 )
+from utils.logger import logger
+from utils.ui import pause
 
 class ProductController:
     def __init__(self):
@@ -36,8 +38,10 @@ class ProductController:
         )
         response_obj = self.product_service.create_product(product)
         if response_obj.error_message is None:
+            logger.info(f"Product created successfully: {name} (ID: {response_obj.product_id})")
             print(f"Product created successfully! product_id: {response_obj.product_id}")
         else:
+            logger.error(f"Failed to create product {name}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
 
     def show_all_products(self) -> list:
@@ -101,8 +105,10 @@ class ProductController:
         )
         response_obj = self.product_service.update_product(product)
         if response_obj.affected_rows is not None and response_obj.error_message is None:
+            logger.info(f"Product {product_id} updated successfully.")
             print("Product updated successfully.")
         else:
+            logger.error(f"Failed to update product {product_id}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
 
     def delete_product(self):
@@ -120,6 +126,8 @@ class ProductController:
         product = DeleteProductRequest(product_id=product_id)
         response_obj = self.product_service.delete_product(product)
         if response_obj.affected_rows is not None and response_obj.error_message is None:
+            logger.info(f"Product {product_id} deleted successfully.")
             print(f"Product with product_id {product_id} deleted successfully.")
         else:
+            logger.error(f"Failed to delete product {product_id}: {response_obj.error_message}")
             print(f"Error: {response_obj.error_message}")
