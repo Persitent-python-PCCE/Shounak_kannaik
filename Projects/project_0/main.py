@@ -2,6 +2,7 @@ from controller.user_controller import UserController
 from controller.category_controller import CategoryController
 from controller.product_controller import ProductController
 from controller.cart_controller import CartController
+from controller.order_controller import OrderController
 
 
 def main():
@@ -198,7 +199,7 @@ def admin_menu(user_controller: UserController):
                 print("Invalid choice")
 
 
-def browse_products_action(current_user, product_controller: ProductController, cart_controller: CartController, action: str):
+def browse_products_action(current_user, product_controller: ProductController, cart_controller: CartController, order_controller: OrderController, action: str):
     while True:
         name = input("Enter the exact product name (or 0 to cancel): ").strip()
         if name == "0":
@@ -223,7 +224,7 @@ def browse_products_action(current_user, product_controller: ProductController, 
                 print("Invalid input. Please enter a number.")
 
         if action == "buy":
-            print("Direct purchase coming soon...")
+            order_controller.direct_buy(current_user.user_id, product.product_id, quantity)
         elif action == "add_to_cart":
             cart_controller.add_to_cart(current_user.user_id, product.product_id, quantity)
         return
@@ -232,6 +233,7 @@ def browse_products_action(current_user, product_controller: ProductController, 
 def user_menu(current_user):
     product_controller = ProductController()
     cart_controller = CartController()
+    order_controller = OrderController()
 
     while True:
         print("""
@@ -254,17 +256,17 @@ def user_menu(current_user):
 
                 print("""
         What would you like to do?
-        a. Buy a product 
-        b. Add product to cart
-        c. Back
+        1. Buy a product 
+        2. Add product to cart
+        0. Back
                 """)
                 sub = input("Enter your choice: ").strip().lower()
 
-                if sub == "a":
-                    browse_products_action(current_user, product_controller, cart_controller, "buy")
-                elif sub == "b":
-                    browse_products_action(current_user, product_controller, cart_controller, "add_to_cart")
-                elif sub == "c":
+                if sub == "1":
+                    browse_products_action(current_user, product_controller, cart_controller, order_controller, "buy")
+                elif sub == "2":
+                    browse_products_action(current_user, product_controller, cart_controller, order_controller, "add_to_cart")
+                elif sub == "0":
                     continue
                 else:
                     print("Invalid choice.")
