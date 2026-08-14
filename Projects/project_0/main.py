@@ -1,6 +1,7 @@
 from controller.user_controller import UserController
 from controller.category_controller import CategoryController
 from controller.product_controller import ProductController
+from controller.cart_controller import CartController
 
 
 def main():
@@ -22,7 +23,7 @@ def main():
                 if current_user.role == "admin":
                     admin_menu(user_controller)
                 else:
-                    user_menu()
+                    user_menu(current_user)
         elif choice == "2":
             user_controller.create_user()
         elif choice == "0":
@@ -197,26 +198,83 @@ def admin_menu(user_controller: UserController):
                 print("Invalid choice")
 
 
-def user_menu():
+def browse_products_action(current_user, product_controller: ProductController, cart_controller: CartController, action: str):
+    while True:
+        name = input("Enter the exact product name (or 0 to cancel): ").strip()
+        if name == "0":
+            return
+
+        product = product_controller.get_product_by_exact_name(name)
+        if product is None:
+            print(f"No product found with exact name '{name}'. Please try again.")
+            continue
+
+        while True:
+            try:
+                quantity = int(input(f"Enter quantity: ").strip())
+                if quantity <= 0:
+                    print("Quantity must be greater than zero. Try again.")
+                    continue
+                if quantity > product.stock_available:
+                    print(f"Insufficient stock. Only {product.stock_available} available.")
+                    return
+                break
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+
+        if action == "buy":
+            print("Direct purchase coming soon...")
+        elif action == "add_to_cart":
+            cart_controller.add_to_cart(current_user.user_id, product.product_id, quantity)
+        return
+
+
+def user_menu(current_user):
+    product_controller = ProductController()
+    cart_controller = CartController()
+
     while True:
         print("""
         ------------- EZ Buy -------------
-        1. Products
-        2. Categories
-        3. Cart
-        4. Orders
-        0. Exit
+        1. Show Products
+        2. Show Categories
+        3. My Cart
+        4. My Orders
+        5. My Profile
+        0. Logout
         """)
 
         choice = input("Enter your choice: ")
 
         match choice:
+            case "1":
+                products = product_controller.show_all_products()
+                if not products:
+                    continue
+
+                print("""
+        What would you like to do?
+        a. Buy a product 
+        b. Add product to cart
+        c. Back
+                """)
+                sub = input("Enter your choice: ").strip().lower()
+
+                if sub == "a":
+                    browse_products_action(current_user, product_controller, cart_controller, "buy")
+                elif sub == "b":
+                    browse_products_action(current_user, product_controller, cart_controller, "add_to_cart")
+                elif sub == "c":
+                    continue
+                else:
+                    print("Invalid choice.")
+
             case "0":
-                print("Exiting...")
+                print("Logged out.")
                 break
 
             case _:
-                print("User menu coming soon...")
+                print("Coming soon...")
 
 
 if __name__ == "__main__":

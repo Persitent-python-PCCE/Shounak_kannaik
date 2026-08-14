@@ -13,7 +13,7 @@ class UserDAO:
         cursor= self.con.cursor()
         response_obj = CreateUserResponse(None, None)
         try:
-            query = "INSERT INTO users(username, name, email, password, role) VALUES(%s, %s, %s, %s, %s)"
+            query = "INSERT INTO users(username, name, email, password_hash, role) VALUES(%s, %s, %s, %s, %s)"
             values = (user.username, user.name, user.email, user.password, user.role)
             cursor.execute(query, values)
             self.con.commit()
@@ -31,7 +31,7 @@ class UserDAO:
         response_obj = UserLoginResponse(None, None, None, None, None)
         try:
             args = (user.username,user.password, None, None,None, None)
-            result = cursor.callproc("user_login", args)
+            result = cursor.callproc("sp_user_login", args)
 
             login_success = result[2]
             user_id = result[3]
@@ -104,7 +104,7 @@ class UserDAO:
         cursor = self.con.cursor()
         response_obj = UpdateUserResponse(None, None)
         try:
-            query = "SELECT user_id, username,name, email, role, password FROM users WHERE user_id = %s;"
+            query = "SELECT user_id, username, name, email, role, password_hash FROM users WHERE user_id = %s;"
             values = (user.user_id,)
             cursor.execute(query, values)
             
@@ -115,17 +115,17 @@ class UserDAO:
                 current_name = curent_details[2]
                 current_email = curent_details[3]
                 current_role = curent_details[4]
-                current_password = curent_details[5]
+                current_password_hash = curent_details[5]
             else:
                 raise ValueError("User not found. Check Username")
             new_name = user.name if user.name != "" else current_name
             new_username = user.username if user.username != "" else current_username
-            new_password = user.password if user.password != "" else current_password
+            new_password_hash = user.password if user.password != "" else current_password_hash
             new_email = user.email if user.email != "" else current_email
             new_role = user.role if user.role != "" else current_role
             
-            query = "UPDATE users SET name = %s, username = %s, password= %s ,email = %s, role = %s WHERE user_id = %s"
-            values = (new_name,new_username,new_password,new_email,new_role,current_user_id)
+            query = "UPDATE users SET name = %s, username = %s, password_hash = %s, email = %s, role = %s WHERE user_id = %s"
+            values = (new_name, new_username, new_password_hash, new_email, new_role, current_user_id)
             cursor.execute(query, values)
             self.con.commit()
             response_obj.affected_rows = cursor.rowcount

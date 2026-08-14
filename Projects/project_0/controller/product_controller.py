@@ -50,6 +50,16 @@ class ProductController:
             print("No products found.")
         return products
 
+    def get_product_by_exact_name(self, name: str):
+        try:
+            results = self.product_service.search_product(SearchProductRequest(name=name))
+            exact = [p for p in results if p.name.strip().lower() == name.strip().lower()]
+            if len(exact) == 1:
+                return exact[0]
+            return None
+        except ValueError:
+            return None
+
     def search_product(self):
         name = input("Enter product name to search: ").strip()
         product = SearchProductRequest(name=name)

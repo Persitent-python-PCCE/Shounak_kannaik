@@ -14,7 +14,8 @@ class CategoryService:
 
     def create_category(self, category: CreateCategoryRequest) -> CreateCategoryResponse:
         try:
-            if category.name.strip() == "":
+            category.name = " ".join(category.name.strip().split()).title() if category.name else ""
+            if category.name == "":
                 raise ValueError("Category name cannot be empty")
         except ValueError as e:
             return CreateCategoryResponse(None, str(e))
@@ -25,7 +26,8 @@ class CategoryService:
 
     def search_category(self, category: SearchCategoryRequest) -> SearchCategoryResponse:
         try:
-            if category.name.strip() == "":
+            category.name = category.name.strip() if category.name else ""
+            if category.name == "":
                 raise ValueError("Category name cannot be empty")
         except ValueError as e:
             return SearchCategoryResponse(None, None, str(e))
@@ -35,6 +37,8 @@ class CategoryService:
         try:
             if category.category_id is None:
                 raise ValueError("category_id cannot be empty")
+            if category.name is not None and category.name.strip() != "":
+                category.name = " ".join(category.name.strip().split()).title()
         except ValueError as e:
             return UpdateCategoryResponse(None, str(e))
         return self.category_dao.update_category(category=category)
