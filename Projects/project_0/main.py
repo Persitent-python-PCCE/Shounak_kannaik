@@ -349,5 +349,5 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, EOFError):
         logger.warning("Application forcefully terminated by user (KeyboardInterrupt/EOFError)")
         clear_screen()
-        print("\nExiting EZ Buy... Goodbye!")
+        print("\nExiting EZ Buy...")
         sys.exit(0)

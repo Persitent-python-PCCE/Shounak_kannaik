@@ -1,1 +1,22 @@
-[2026-08-15 03:18:29] [INFO] - Test log entry
+
+[2026-08-15 11:40:07] [INFO] - Application started
+[2026-08-15 11:40:46] [WARNING] - Failed login attempt for tester101: login unsuccessful. check username and password
+[2026-08-15 11:41:00] [WARNING] - Failed login attempt for Tester@123: login unsuccessful. check username and password
+[2026-08-15 11:41:06] [INFO] - User login successful: tester101
+[2026-08-15 11:47:16] [INFO] - User logged out: tester101
+[2026-08-15 11:49:35] [INFO] - Application started
+[2026-08-15 11:49:52] [INFO] - User login successful: tester101
+[2026-08-15 11:59:02] [INFO] - Application started
+[2026-08-15 11:59:03] [INFO] - package: mysql.connector.plugins
+[2026-08-15 11:59:03] [INFO] - plugin_name: caching_sha2_password
+[2026-08-15 11:59:03] [INFO] - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+[2026-08-15 11:59:21] [INFO] - User login successful: tester101
+[2026-08-15 12:00:27] [WARNING] - Application forcefully terminated by user (KeyboardInterrupt/EOFError)
+[2026-08-15 12:09:07] [INFO] - User 1 successfully placed Order #999 for Product 1 (Qty: 1)
+[2026-08-15 12:27:55] [INFO] - Application started
+[2026-08-15 12:28:16] [INFO] - User login successful: tester101
+[2026-08-15 12:28:32] [INFO] - User 10 added Product 5 (Qty: 1) to cart.
+[2026-08-15 12:29:23] [INFO] - User 10 successfully placed Order #11 for Product 1 (Qty: 1)
+[2026-08-15 12:30:04] [INFO] - User 10 updated cart item Product 5 to Qty: 2
+[2026-08-15 12:30:12] [INFO] - User 10 successfully checked out cart -> Order #12
+[2026-08-15 12:30:34] [INFO] - User logged out: tester101

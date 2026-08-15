@@ -6,6 +6,7 @@ from models.cart_model import (
     CheckoutCartRequest
 )
 from utils.ui import clear_screen, pause
+from utils.logger import logger
 
 class CartController:
     def __init__(self):
@@ -15,8 +16,10 @@ class CartController:
         request = AddToCartRequest(user_id=user_id, product_id=product_id, quantity=quantity)
         response = self.cart_service.add_to_cart(request)
         if response.success:
+            logger.info(f"User {user_id} added Product {product_id} (Qty: {quantity}) to cart.")
             print('Product added to cart successfully!')
         else:
+            logger.error(f"User {user_id} failed to add Product {product_id} to cart: {response.error_message}")
             print(f'Error: {response.error_message}')
 
     def _display_cart(self, user_id: int):
@@ -96,8 +99,10 @@ class CartController:
             req = UpdateCartItemRequest(user_id=user_id, product_id=item.product_id, new_quantity=new_qty)
             res = self.cart_service.update_cart_item(req)
             if res.success:
+                logger.info(f"User {user_id} updated cart item Product {item.product_id} to Qty: {new_qty}")
                 print('Cart updated successfully.')
             else:
+                logger.error(f"User {user_id} failed to update cart item Product {item.product_id}: {res.error_message}")
                 print(f'Error: {res.error_message}')
             pause()
 
@@ -111,8 +116,10 @@ class CartController:
             req = RemoveCartItemRequest(user_id=user_id, product_id=item.product_id)
             res = self.cart_service.remove_cart_item(req)
             if res.success:
+                logger.info(f"User {user_id} removed Product {item.product_id} from cart.")
                 print(f"'{item.product_name}' removed from cart.")
             else:
+                logger.error(f"User {user_id} failed to remove Product {item.product_id} from cart: {res.error_message}")
                 print(f'Error: {res.error_message}')
             pause()
 
@@ -138,6 +145,7 @@ class CartController:
         req = CheckoutCartRequest(user_id=user_id)
         res = self.cart_service.checkout_cart(req)
         if res.success:
+            logger.info(f"User {user_id} successfully checked out cart -> Order #{res.order_id}")
             print(f"""
 ------- Order Placed Successfully! -------
 Order ID    : {res.order_id}
@@ -146,5 +154,6 @@ Total Price : ${res.total_amount}
 Order Date  : {res.order_date}
 ------------------------------------------""")
         else:
+            logger.error(f"User {user_id} failed to checkout cart: {res.error_message}")
             print(f'Error: {res.error_message}')
 
