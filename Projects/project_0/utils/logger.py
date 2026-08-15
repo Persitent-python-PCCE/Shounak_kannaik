@@ -1,7 +1,6 @@
 import logging
 import os
 
-# Configure the root logger
 log_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.log')
 
 logging.basicConfig(
@@ -11,5 +10,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Export a configured logger instance
 logger = logging.getLogger('EZBuyApp')
+logging.getLogger('mysql').setLevel(logging.WARNING)
+logging.getLogger('mysql.connector').setLevel(logging.WARNING)
