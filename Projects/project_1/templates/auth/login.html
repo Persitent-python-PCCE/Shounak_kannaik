@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Ticket Booking App{% endblock %}
+
+{% block content %}
+<section class="auth-container">
+    <h2>Sign In</h2>
+    <form method="POST" action="{{ url_for('auth_controller.login') }}">
+        <p>Login form stub</p>
+        <button type="submit">Log In</button>
+    </form>
+</section>
+{% endblock %}
