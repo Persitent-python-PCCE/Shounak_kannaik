@@ -1,0 +1,34 @@
+# Python Bytecode and Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment Variables and Secrets
+.env
+.env.local
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.env.example
+# Instance and Local Database files
+instance/
+*.sqlite3
+*.db
+
+# Static Uploads (keep directory structure via .gitkeep)
+static/uploads/posters/*
+!static/uploads/posters/.gitkeep
+static/uploads/id_docs/*
+!static/uploads/id_docs/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
