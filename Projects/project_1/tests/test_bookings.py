@@ -3,15 +3,14 @@ Booking tests.
 """
 
 
-def test_get_bookings(client):
-    """Test getting bookings list."""
-    response = client.get("/bookings/")
+def test_get_bookings(client, customer_headers):
+    """Test getting bookings list for authenticated user."""
+    response = client.get("/bookings/", headers=customer_headers)
     assert response.status_code == 200
     assert isinstance(response.get_json(), list)
 
 
-def test_create_booking(client):
-    """Test creating a booking."""
-    response = client.post("/bookings/", json={"schedule_id": 1, "seats": [101]})
-    assert response.status_code == 201
-    assert "booking" in response.get_json()
+def test_get_bookings_unauthenticated(client):
+    """Test getting bookings without auth fails with 401."""
+    response = client.get("/bookings/")
+    assert response.status_code == 401

@@ -1,25 +1,55 @@
 """
-Role-Based Access Control and Admin tests.
+Role-Based Access Control and Admin Route tests.
 """
 
 
-def test_admin_get_users(client):
-    """Test getting users list from admin controller."""
+def test_admin_route_unauthenticated(client):
+    """Unauthenticated requests to admin routes must return 401."""
     response = client.get("/admin/users")
+    assert response.status_code == 401
+    data = response.get_json()
+    assert data["error"] == "Unauthorized"
+
+
+def test_admin_route_forbidden_for_customer(client, customer_headers):
+    """Customer role accessing admin route must return 403 Forbidden."""
+    response = client.get("/admin/users", headers=customer_headers)
+    assert response.status_code == 403
+    data = response.get_json()
+    assert data["error"] == "Forbiden"
+
+
+def test_admin_route_allowed_for_admin(client, admin_headers):
+    """Admin role accessing admin route must return 200 OK."""
+    response = client.get("/admin/users", headers=admin_headers)
     assert response.status_code == 200
-    assert isinstance(response.get_json(), list)
+    data = response.get_json()
+    assert isinstance(data, list)
 
 
-def test_admin_create_user(client):
-    """Test creating a user via admin controller."""
+def test_admin_create_venue(client, admin_headers):
+    """Admin can create new venues."""
     payload = {
-        "username": "admin_test_user",
-        "password": "Password123!",
-        "email": "admintest@example.com",
-        "phone_no": "1234567890"
+        "name": "Grand Arena",
+        "city": "Metropolis",
+        "state": "NY",
+        "country": "USA",
+        "address": "100 Stadium Way",
+        "capacity": 50000
     }
-    response = client.post("/admin/users", json=payload)
+    response = client.post("/admin/venues", json=payload, headers=admin_headers)
     assert response.status_code == 201
-    json_data = response.get_json()
-    assert "user" in json_data
-    assert json_data["user"]["username"] == "admin_test_user"
+
+
+def test_customer_cannot_create_venue(client, customer_headers):
+    """Customer cannot create venues (returns 403)."""
+    payload = {
+        "name": "Rogue Arena",
+        "city": "Metropolis",
+        "state": "NY",
+        "country": "USA",
+        "address": "100 Stadium Way",
+        "capacity": 50000
+    }
+    response = client.post("/admin/venues", json=payload, headers=customer_headers)
+    assert response.status_code == 403

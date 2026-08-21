@@ -13,28 +13,20 @@ auth_service = AuthService(UserDAO())
 @auth_controller.route("/login", methods=["POST"])
 def user_login():
     data = request.get_json() or {}
-    try:
-        user = auth_service.login(data)
-        token = auth_service.generate_token(user)
-        return jsonify({
-            "message": "User logged in successfully",
-            "token": token,
-            "user": user.to_dict() if user else None,
-        }), 200
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
-    except Exception as e:
-        return jsonify({"error": "internal error occured"}), 500
+    user = auth_service.login(data)
+    token = auth_service.generate_token(user)
+    return jsonify({
+        "message": "User logged in successfully",
+        "token": token,
+        "user": user.to_dict() if user else None,
+    }), 200
 
 
 @auth_controller.route("/register", methods=["POST"])
 def register():
     data = request.get_json() or {}
-    try:
-        user = auth_service.register(data)
-        return jsonify({
-            "message": "User created successfully",
-            "user": user.to_dict() if user else None
-        }), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    user = auth_service.register(data)
+    return jsonify({
+        "message": "User created successfully",
+        "user": user.to_dict() if user else None
+    }), 201
