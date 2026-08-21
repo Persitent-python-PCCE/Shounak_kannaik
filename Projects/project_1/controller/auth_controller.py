@@ -15,9 +15,11 @@ def user_login():
     data = request.get_json() or {}
     try:
         user = auth_service.login(data)
+        token = auth_service.generate_token(user)
         return jsonify({
             "message": "User logged in successfully",
-            "user": user.to_dict() if user else None
+            "token": token,
+            "user": user.to_dict() if user else None,
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 401

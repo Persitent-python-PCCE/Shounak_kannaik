@@ -11,6 +11,7 @@ from config.settings import DevelopmentConfig
 from config.database import db, migrate, login_manager
 from dao.user_dao import UserDAO
 import models  # Ensure all SQLAlchemy models are registered for migrations
+from middleware.error_handlers import register_error_handlers
 
 # Import controllers
 from controller.auth_controller import auth_controller
@@ -36,6 +37,8 @@ def create_app(config_class=DevelopmentConfig):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = "auth_controller.login"
+
+    register_error_handlers(app)
 
     # Flask-Login user loader callback
     @login_manager.user_loader

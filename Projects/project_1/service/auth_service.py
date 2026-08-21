@@ -4,7 +4,10 @@ Authentication and User Service.
 Handles business logic for user registration, authentication, and session management.
 Receives DAOs via constructor injection to facilitate unit testing with mock DAOs.
 """
-
+import jwt
+from datetime import datetime, timezone, timedelta
+from flask import current_app
+from common.exceptions import AuthenticationError
 from models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -21,6 +24,30 @@ class AuthService:
         :param user_dao: UserDAO instance (or fake/mock DAO in tests)
         """
         self.user_dao = user_dao
+    
+    def generate_token(self, user):
+        secret_key = current_app.config.get("JWT_SECRET_KEY")
+        expiry_hours = current_app.config.get("JWT_EXPIRY_HOURS")
+        now = datetime.now(timezone.utc)
+        payload = {
+            "user_id": user.id,
+            "role": user.role,
+            "iat": now,
+            "exp": now+timedelta(hours=expiry_hours)
+        }
+        token = jwt.encode(payload, secret_key, algorithm="HS256")
+        return token
+        
+
+    def verify_token(self, token: str):
+        try:
+            secret_key = current_app.config.get("JWT_SECRET_KEY")
+            payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationError("Token has expired. Please login again")
+        except jwt.InvalidTokenError:
+            raise AuthenticationError("Invalid token.")
 
     def register(self, data):
         if not data.get("username") or not data.get("password") or not data.get("email"):
@@ -48,4 +75,5 @@ class AuthService:
         if not user.is_active:
             raise ValueError("User is inactive. Please contact support.")
         return user
+
     
