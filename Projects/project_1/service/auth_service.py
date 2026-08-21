@@ -71,9 +71,9 @@ class AuthService:
             raise ValueError("Username and password are required fields.")
         user = self.user_dao.get_by_username(data["username"])
         if not user or not check_password_hash(user.password_hash, data["password"]):
-            raise ValueError("Invalid username or password.")
+            raise AuthenticationError("Invalid username or password.")
         if not user.is_active:
-            raise ValueError("User is inactive. Please contact support.")
+            raise AuthenticationError("User is inactive. Please contact support.")
         return user
 
     
