@@ -21,7 +21,7 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), default=db.func.now(), onupdate=db.func.now())
     is_active = db.Column(db.Boolean, default=True)
-    role = db.Column(db.String(20), default="user")
+    role = db.Column(db.String(20), default="customer")
     last_active = db.Column(db.DateTime(timezone=True))
 
     # Relationships

@@ -7,3 +7,5 @@ python-dotenv
 pytest
 pytest-flask
 PyMySQL
+PyJWT
+Flask-Cors
