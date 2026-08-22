@@ -24,6 +24,7 @@ from controller.admin_controller import admin_controller
 from controller.api_controller import api_controller
 from controller.payment_controller import payment_controller
 from controller.document_controller import document_controller
+from controller.schedule_controller import schedule_controller
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -60,6 +61,7 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(api_controller, url_prefix="/api")
     app.register_blueprint(payment_controller, url_prefix="/payments")
     app.register_blueprint(document_controller, url_prefix="/documents")
+    app.register_blueprint(schedule_controller, url_prefix="/schedules")
 
     # Root redirect / health route
     @app.route("/")

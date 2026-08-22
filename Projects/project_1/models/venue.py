@@ -47,6 +47,7 @@ class Section(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey("venues.id", ondelete="CASCADE"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
 
     venue = db.relationship("Venue", back_populates="sections")
     seats = db.relationship("Seat", back_populates="section", cascade="all, delete-orphan")
@@ -58,6 +59,7 @@ class Section(db.Model):
             "venue_id": self.venue_id,
             "name": self.name,
             "description": self.description,
+            "price": float(self.price) if self.price else 0.00
         }
 
 

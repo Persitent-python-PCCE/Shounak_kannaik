@@ -7,10 +7,12 @@ from service.admin_service import AdminService
 from service.venue_service import VenueService
 from service.event_service import EventService
 from service.booking_service import BookingService
+from service.schedule_service import ScheduleService
 from dao.user_dao import UserDAO
 from dao.venue_dao import VenueDAO
 from dao.event_dao import EventDAO
 from dao.booking_dao import BookingDAO
+from dao.schedule_dao import ScheduleDAO
 from common.decorators import authenticate, authorize
 from common.roles import Role
 
@@ -19,6 +21,7 @@ admin_service = AdminService(UserDAO())
 venue_service = VenueService(VenueDAO())
 event_service = EventService(EventDAO())
 booking_service = BookingService(BookingDAO())
+schedule_service = ScheduleService(ScheduleDAO())
 
 
 # ==========================================
@@ -183,6 +186,63 @@ def add_genre_to_event(event_id, genre_id):
         event_service.add_genre_to_event(event_id, genre_id)
         return jsonify({
             "message": "Genre linked to event successfully"
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "internal error occured"}), 500
+
+
+# ==========================================
+# Schedule Management Routes (Admin Only)
+# ==========================================
+
+@admin_controller.route("/schedules", methods=["POST"])
+@authenticate
+@authorize(Role.ADMIN)
+def create_schedule():
+    """Endpoint for admins to create an event schedule."""
+    data = request.get_json() or {}
+    try:
+        schedule = schedule_service.create_schedule(data)
+        return jsonify({
+            "message": "Event schedule created successfully",
+            "schedule": schedule.to_dict()
+        }), 201
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "internal error occured"}), 500
+
+
+@admin_controller.route("/schedules/<int:schedule_id>", methods=["PUT", "PATCH"])
+@authenticate
+@authorize(Role.ADMIN)
+def update_schedule(schedule_id):
+    """Endpoint for admins to update an event schedule."""
+    data = request.get_json() or {}
+    data["schedule_id"] = schedule_id
+    try:
+        schedule = schedule_service.update_schedule(data)
+        return jsonify({
+            "message": "Event schedule updated successfully",
+            "schedule": schedule.to_dict()
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "internal error occured"}), 500
+
+
+@admin_controller.route("/schedules/<int:schedule_id>", methods=["DELETE"])
+@authenticate
+@authorize(Role.ADMIN)
+def delete_schedule(schedule_id):
+    """Endpoint for admins to delete an event schedule."""
+    try:
+        schedule_service.delete_schedule(schedule_id)
+        return jsonify({
+            "message": "Event schedule deleted successfully"
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

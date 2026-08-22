@@ -5,6 +5,10 @@ Custom application exception classes.
 
 class SeatUnavailableError(Exception):
     """Raised when an attempt is made to reserve an already booked or locked seat."""
+    def  __init__(self,message="Seat is already booked or reserved."):
+        super().__init__(message)
+        self.message = message
+        self.status_code = 409
     pass
 
 
