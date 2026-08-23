@@ -4,7 +4,7 @@ A production-grade Flask ticket-booking application implementing strict Layered 
 
 ---
 
-## 🏛️ Architectural Pattern
+## Architectural Pattern
 
 This project strictly adheres to the 4-layer architecture pattern:
 
@@ -15,7 +15,7 @@ This project strictly adheres to the 4-layer architecture pattern:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ticket-booking-app/
@@ -98,7 +98,7 @@ ticket-booking-app/
 
 ---
 
-## 🚀 Setup and Installation
+## Setup and Installation
 
 ### 1. Create and Activate Virtual Environment
 ```bash

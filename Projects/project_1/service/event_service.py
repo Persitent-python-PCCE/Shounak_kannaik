@@ -115,3 +115,7 @@ class EventService:
         self.get_event_by_id(e_id)
         self.event_dao.add_genre_to_event(e_id, g_id)
         return True
+
+    def get_trending_event_this_week(self):
+        """Retrieve the trending event for the current week."""
+        return self.event_dao.get_trending_event_this_week()

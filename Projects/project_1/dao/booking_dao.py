@@ -126,3 +126,28 @@ class BookingDAO:
         except Exception as e:
             db.session.rollback()
             raise e
+
+    def get_booked_seat_ids(self, schedule_id):
+        """Retrieve seat IDs that are currently active/reserved/booked for a schedule."""
+        five_min_check = datetime.now(timezone.utc) - timedelta(minutes=5)
+        results = (
+            db.session.query(BookingItem.seat_id)
+            .join(Booking, BookingItem.booking_id == Booking.id)
+            .join(PaymentStatus, Booking.payment_status_id == PaymentStatus.id)
+            .outerjoin(BookingStatus, Booking.booking_status_id == BookingStatus.id)
+            .filter(
+                Booking.schedule_id == schedule_id,
+                db.or_(
+                    Booking.booking_status_id == None,
+                    BookingStatus.status_name != "cancelled"
+                ),
+                db.or_(
+                    PaymentStatus.status_name == "completed",
+                    db.and_(
+                        PaymentStatus.status_name == "pending",
+                        Booking.created_at >= five_min_check
+                    )
+                )
+            ).all()
+        )
+        return {r[0] for r in results}

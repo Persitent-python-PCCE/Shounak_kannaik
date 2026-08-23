@@ -36,3 +36,9 @@ class PaymentDAO:
         return db.session.execute(
             db.select(PaymentStatus).where(PaymentStatus.status_name == status_name)
         ).scalar_one_or_none()
+
+    def create_transaction(self, transaction):
+        """Persist a new PaymentTransaction record."""
+        db.session.add(transaction)
+        db.session.commit()
+        return transaction

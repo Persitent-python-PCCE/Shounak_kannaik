@@ -5,11 +5,14 @@ Handles business logic for user registration, authentication, and session manage
 Receives DAOs via constructor injection to facilitate unit testing with mock DAOs.
 """
 import jwt
+import re
 from datetime import datetime, timezone, timedelta
 from flask import current_app
 from common.exceptions import AuthenticationError
 from models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
+
+PHONE_REGEX = r"^\+?[0-9]{7,15}$"
 
 
 class AuthService:
@@ -57,12 +60,20 @@ class AuthService:
         if self.user_dao.get_by_email(data["email"]):
             raise ValueError("Email already exists.")
 
+        phone_no = data.get("phone_no")
+        if phone_no and str(phone_no).strip():
+            phone_no = str(phone_no).strip()
+            if not re.match(PHONE_REGEX, phone_no):
+                raise ValueError("Invalid phone number format. Must contain 7-15 digits with optional '+' prefix.")
+        else:
+            phone_no = None
+
         hashed_password = generate_password_hash(data["password"])
         user = User(
-            username=data.get("username"),
+            username=data.get("username").strip() if isinstance(data.get("username"), str) else data.get("username"),
             password_hash=hashed_password,
-            email=data.get("email"),
-            phone_no=data.get("phone_no"),
+            email=data.get("email").strip() if isinstance(data.get("email"), str) else data.get("email"),
+            phone_no=phone_no,
         )
         return self.user_dao.create_user(user)
 

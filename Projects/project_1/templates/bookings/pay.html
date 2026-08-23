@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Payment - Ticket Booking System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h3 class="h5 fw-bold mb-0">Select Payment Method</h3>
+            </div>
+            <div class="card-body p-4">
+                <!-- Booking Summary -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <h6 class="fw-bold mb-2">Order Summary</h6>
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Booking Reference:</span>
+                        <strong>{{ booking.booking_reference or ('#' ~ booking.id) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Event:</span>
+                        <span>{{ booking.schedule.event.name if booking.schedule and booking.schedule.event else 'Event' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Showtime:</span>
+                        <span>{{ booking.schedule.start_datetime.strftime('%b %d, %Y %I:%M %p') if booking.schedule and booking.schedule.start_datetime else 'N/A' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Seats Reserved:</span>
+                        <span>{{ booking.booking_items|length }} seat(s)</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total Payable:</span>
+                        <span class="text-primary">₹{{ "%.2f"|format(booking.total_amount) if booking.total_amount else '0.00' }}</span>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <form method="POST" action="{{ url_for('payments_web.process_payment_ui') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-4">
+                        <label for="payment_mode_id" class="form-label fw-bold">Choose Payment Mode</label>
+                        {{ form.payment_mode_id(class="form-select" + (" is-invalid" if form.payment_mode_id.errors else ""), id="payment_mode_id") }}
+                        {% if form.payment_mode_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.payment_mode_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Select UPI or any method to generate an instant payment QR code.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success py-2 fw-bold") }}
+                        <a href="{{ url_for('events_web.event_detail', event_id=booking.schedule.event_id) if booking.schedule else url_for('events_web.list_events') }}" class="btn btn-outline-secondary btn-sm">
+                            Cancel & Return to Event
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

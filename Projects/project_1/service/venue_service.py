@@ -71,4 +71,27 @@ class VenueService:
             except ValueError:
                 raise ValueError("Maximun Capacity must be a valid numeric value")        
         return self.venue_dao.filter_venue(cleaned_filters)
+
+    def create_venue_with_layout(self, venue_data, sections_data=None):
+        """Create venue and its sections and seats."""
+        total_seats = 0
+        if sections_data:
+            for s in sections_data:
+                try:
+                    r_cnt = int(s.get("row_count") or 0)
+                    s_cnt = int(s.get("seats_per_row") or 0)
+                    total_seats += r_cnt * s_cnt
+                except (ValueError, TypeError):
+                    pass
+
+        if total_seats > 0:
+            entered_cap = venue_data.get("capacity") or 0
+            venue_data["capacity"] = max(entered_cap, total_seats)
+
+        venue = self.create_venue(venue_data)
+
+        if sections_data and hasattr(self.venue_dao, "create_sections_and_seats"):
+            self.venue_dao.create_sections_and_seats(venue.id, sections_data)
+
+        return venue
         

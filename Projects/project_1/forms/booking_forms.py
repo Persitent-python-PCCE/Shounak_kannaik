@@ -3,11 +3,13 @@ Booking form definitions.
 """
 
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import HiddenField, SelectField, SubmitField
+from wtforms.validators import DataRequired, Optional
 
 
 class BookingForm(FlaskForm):
-    """Ticket booking submission form placeholder."""
+    """Ticket booking submission form."""
     schedule_id = HiddenField("Schedule ID", validators=[DataRequired()])
-    submit = SubmitField("Confirm Booking")
+    seat_ids = HiddenField("Seat IDs", validators=[DataRequired()])
+    payment_mode_id = SelectField("Payment Mode", coerce=int, validators=[Optional()])
+    submit = SubmitField("Proceed to Payment")

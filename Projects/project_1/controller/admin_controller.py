@@ -15,6 +15,7 @@ from dao.booking_dao import BookingDAO
 from dao.schedule_dao import ScheduleDAO
 from common.decorators import authenticate, authorize
 from common.roles import Role
+from common.file_utils import validate_file, save_uploaded_file
 
 admin_controller = Blueprint("admin_controller", __name__)
 admin_service = AdminService(UserDAO())
@@ -128,9 +129,23 @@ def delete_venue(venue_id):
 @authenticate
 @authorize(Role.ADMIN)
 def create_event():
-    """Endpoint for admins to create an event."""
-    data = request.get_json() or {}
+    """Endpoint for admins to create an event with optional poster upload."""
+    data = request.form.to_dict() if request.form else (request.get_json() or {})
+    poster_file = request.files.get("poster_image") or request.files.get("poster") or request.files.get("file")
     try:
+        if poster_file and getattr(poster_file, "filename", None):
+            validate_file(
+                poster_file,
+                allowed_extensions={"png", "jpg", "jpeg", "webp"},
+                max_size_bytes=5 * 1024 * 1024,
+                required=False
+            )
+            poster_path = save_uploaded_file(poster_file, "static/uploads/posters", prefix="event")
+            data["poster_image_path"] = poster_path
+
+        if "event_type_id" in data and data["event_type_id"]:
+            data["event_type_id"] = int(data["event_type_id"])
+
         event = event_service.create_event(data)
         return jsonify({
             "message": "Event created successfully",
@@ -146,10 +161,24 @@ def create_event():
 @authenticate
 @authorize(Role.ADMIN)
 def update_event(event_id):
-    """Endpoint for admins to update an event."""
-    data = request.get_json() or {}
+    """Endpoint for admins to update an event with optional poster upload."""
+    data = request.form.to_dict() if request.form else (request.get_json() or {})
     data["event_id"] = event_id
+    poster_file = request.files.get("poster_image") or request.files.get("poster") or request.files.get("file")
     try:
+        if poster_file and getattr(poster_file, "filename", None):
+            validate_file(
+                poster_file,
+                allowed_extensions={"png", "jpg", "jpeg", "webp"},
+                max_size_bytes=5 * 1024 * 1024,
+                required=False
+            )
+            poster_path = save_uploaded_file(poster_file, "static/uploads/posters", prefix="event")
+            data["poster_image_path"] = poster_path
+
+        if "event_type_id" in data and data["event_type_id"]:
+            data["event_type_id"] = int(data["event_type_id"])
+
         event = event_service.update_event(data)
         return jsonify({
             "message": "Event updated successfully",

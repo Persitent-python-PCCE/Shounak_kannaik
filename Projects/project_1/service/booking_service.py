@@ -78,4 +78,45 @@ class BookingService:
             seat_ids=unique_seats,
             payment_mode_id=payment_mode_id
         )
-        
+
+    def get_booked_seat_ids(self, schedule_id):
+        """Retrieve unavailable/booked seat IDs for a given schedule."""
+        if hasattr(self.booking_dao, "get_booked_seat_ids"):
+            return self.booking_dao.get_booked_seat_ids(schedule_id)
+        return set()
+
+    def confirm_payment(self, booking_id, payment_mode_id=None, gateway_transaction_id=None):
+        """
+        Process/confirm a booking payment.
+        Updates booking status to 'confirmed' and payment status to 'completed',
+        and generates a PaymentTransaction record.
+        """
+        import uuid
+        from models.payment import PaymentTransaction
+
+        booking = self.get_booking_by_id(booking_id)
+        if not booking:
+            raise ValueError("Booking not found.")
+
+        if payment_mode_id:
+            booking.payment_mode_id = int(payment_mode_id)
+
+        completed_status = self.payment_dao.get_payment_status_by_name("completed")
+        confirmed_status = self.booking_dao.get_booking_status_by_name("confirmed")
+
+        if completed_status:
+            booking.payment_status_id = completed_status.id
+        if confirmed_status:
+            booking.booking_status_id = confirmed_status.id
+
+        txn = PaymentTransaction(
+            booking_id=booking.id,
+            amount=booking.total_amount or 0.00,
+            gateway_transaction_id=gateway_transaction_id or f"TXN-{uuid.uuid4().hex[:10].upper()}",
+            status="Completed",
+            paid_at=datetime.now(timezone.utc)
+        )
+        if hasattr(self.payment_dao, "create_transaction"):
+            self.payment_dao.create_transaction(txn)
+
+        return self.booking_dao.update_booking(booking)

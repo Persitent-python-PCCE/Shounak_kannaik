@@ -61,3 +61,50 @@ class VenueDAO:
             db.select(Venue).where(Venue.name.ilike(f"%{name}%"))
         ).scalars().all()
         return venues
+
+    def create_sections_and_seats(self, venue_id, sections_data):
+        """
+        Creates sections and programmatically generates seats for a venue.
+        sections_data: list of dicts with keys 'name', 'price', 'row_count', 'seats_per_row'.
+        """
+        from models.venue import Section, Seat
+
+        for sec_data in sections_data:
+            section_name = sec_data.get("name") or "Main"
+            price = float(sec_data.get("price") or 0.00)
+            row_count = int(sec_data.get("row_count", 0))
+            seats_per_row = int(sec_data.get("seats_per_row", 0))
+
+            if row_count <= 0 or seats_per_row <= 0:
+                continue
+
+            section = Section(
+                venue_id=venue_id,
+                name=section_name,
+                price=price
+            )
+            db.session.add(section)
+            db.session.flush()
+
+            for r_idx in range(row_count):
+                row_name = self._generate_row_name(r_idx)
+                for s_num in range(1, seats_per_row + 1):
+                    seat_number = f"{row_name}{s_num}"
+                    seat = Seat(
+                        section_id=section.id,
+                        row=row_name,
+                        number=seat_number,
+                        seat_type="Regular"
+                    )
+                    db.session.add(seat)
+
+        db.session.commit()
+
+    def _generate_row_name(self, index):
+        """Convert 0 -> 'A', 1 -> 'B', ..., 25 -> 'Z', 26 -> 'AA'."""
+        result = ""
+        index += 1
+        while index > 0:
+            index, remainder = divmod(index - 1, 26)
+            result = chr(65 + remainder) + result
+        return result

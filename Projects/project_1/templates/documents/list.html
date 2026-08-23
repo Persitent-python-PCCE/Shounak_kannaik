@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}My Documents - Ticket Booking System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold mb-4">My Documents</h1>
+    </div>
+
+    <!-- Upload New Document Card -->
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h2 class="h5 fw-bold mb-0">Upload Document</h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('documents_web.upload_document_ui') }}" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label for="doc_type" class="form-label">Document Type <span class="text-danger">*</span></label>
+                        {{ form.doc_type(class="form-select" + (" is-invalid" if form.doc_type.errors else ""), id="doc_type") }}
+                        {% if form.doc_type.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.doc_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="document" class="form-label">Select File (PDF, PNG, JPG - Max 5MB) <span class="text-danger">*</span></label>
+                        {{ form.document(class="form-control" + (" is-invalid" if form.document.errors else ""), id="document") }}
+                        {% if form.document.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.document.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uploaded Documents Table -->
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h2 class="h5 fw-bold mb-0">Uploaded Documents</h2>
+            </div>
+            <div class="card-body p-0">
+                {% if documents %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Document Type</th>
+                                <th>File Name</th>
+                                <th>Uploaded On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in documents %}
+                            <tr>
+                                <td>{{ doc.id }}</td>
+                                <td class="fw-bold">{{ doc.doc_type }}</td>
+                                <td>
+                                    <small class="text-muted text-break">{{ doc.file_path.split('/')[-1] if doc.file_path else 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ doc.uploaded_at.strftime('%b %d, %Y') if doc.uploaded_at else 'N/A' }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <p class="mb-0">No documents found. You can upload documents using the form.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
