@@ -9,3 +9,5 @@ pytest-flask
 PyMySQL
 PyJWT
 Flask-Cors
+qrcode
+pillow

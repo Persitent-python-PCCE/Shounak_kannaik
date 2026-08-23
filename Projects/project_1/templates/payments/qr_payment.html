@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Scan QR to Complete Payment - Ticket Booking System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-3">
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm border-0 p-4">
+            <h2 class="h4 fw-bold mb-2">Scan QR to Complete Payment</h2>
+            <p class="text-muted small mb-4">
+                Booking Reference: <strong>{{ booking.booking_reference or ('#' ~ booking.id) }}</strong> | 
+                Total Payable: <strong class="text-success">₹{{ "%.2f"|format(booking.total_amount) if booking.total_amount else '0.00' }}</strong>
+            </p>
+
+            <!-- QR Code Image -->
+            <div class="mb-4">
+                {% if qr_code_base64 %}
+                <div class="d-inline-block p-2 bg-white border rounded shadow-sm">
+                    <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="Payment QR Code" style="width: 250px; height: 250px;">
+                </div>
+                {% else %}
+                <div class="alert alert-warning">Unable to generate QR code.</div>
+                {% endif %}
+            </div>
+
+            <p class="text-muted small mb-3">
+                Scan this QR code with any UPI/Banking App or click the simulation button below to complete your payment transaction.
+            </p>
+
+            <!-- Action buttons -->
+            <div class="d-grid gap-2 col-md-10 mx-auto">
+                <!-- Direct simulation / completion endpoint form -->
+                <form method="POST" action="{{ url_for('payments_web.complete_payment_scan', booking_id=booking.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                    <button type="submit" class="btn btn-success py-2 w-100 fw-bold">
+                        Confirm / Simulate QR Payment Success
+                    </button>
+                </form>
+
+                <!-- Cancel button back to event detail -->
+                <a href="{{ url_for('events_web.event_detail', event_id=booking.schedule.event_id) if booking.schedule else url_for('events_web.list_events') }}" class="btn btn-outline-secondary py-2">
+                    Cancel & Return to Event
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

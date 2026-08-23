@@ -1,13 +1,45 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Ticket Booking App{% endblock %}
+{% block title %}Sign In - Ticket Booking System{% endblock %}
 
 {% block content %}
-<section class="auth-container">
-    <h2>Sign In</h2>
-    <form method="POST" action="{{ url_for('auth_controller.login') }}">
-        <p>Login form stub</p>
-        <button type="submit">Log In</button>
-    </form>
-</section>
+<div class="row justify-content-center py-4">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4 fw-bold">Sign In</h2>
+                <form method="POST" action="{{ url_for('auth_web.login') }}" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), id="username", placeholder="Enter your username") }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="Enter your password") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-white text-center py-3 border-0">
+                <p class="mb-0 text-muted small">Don't have an account? <a href="{{ url_for('auth_web.register') }}">Register here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

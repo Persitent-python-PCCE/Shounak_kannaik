@@ -1,10 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - Ticket Booking App{% endblock %}
+{% block title %}Admin Dashboard - Ticket Booking System{% endblock %}
 
 {% block content %}
-<section class="admin-container">
-    <h2>Admin Dashboard</h2>
-    <p>System metrics and administrative operations.</p>
-</section>
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold mb-4">Admin Dashboard</h1>
+
+        <!-- Administrative Navigation Cards (4 Cards) -->
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            <!-- 1. User Management -->
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-2">User Management</h2>
+                        <p class="text-muted small mb-4">Manage registered customers, administrators, and view KYC documents.</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('admin_web.manage_users') }}" class="btn btn-outline-primary">Open User Management</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Event Management -->
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-2">Event Management</h2>
+                        <p class="text-muted small mb-4">Create events, set schedules with venues, and upload posters.</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('admin_web.manage_events') }}" class="btn btn-outline-success">Open Event Management</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Venue Management -->
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-2">Venue Management</h2>
+                        <p class="text-muted small mb-4">Configure venues, section layouts, and auto-generated seat maps.</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('admin_web.manage_venues') }}" class="btn btn-outline-warning text-dark">Open Venue Management</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Booking Management -->
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-2">Booking Management</h2>
+                        <p class="text-muted small mb-4">Real-time oversight of customer reservations, confirmations, and revenue.</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('admin_web.manage_bookings') }}" class="btn btn-outline-info text-dark">Open Booking Management</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

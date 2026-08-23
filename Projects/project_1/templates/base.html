@@ -3,25 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ticket Booking App{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% block title %}Ticket Booking System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <header>
-        <nav>
-            <a href="{{ url_for('event_controller.list_events') }}">Events</a>
-            <a href="{{ url_for('booking_controller.list_bookings') }}">My Bookings</a>
-            <a href="{{ url_for('auth_controller.login') }}">Login</a>
-            <a href="{{ url_for('admin_controller.dashboard') }}">Admin</a>
-        </nav>
-    </header>
+<body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ url_for('events_web.list_events') }}">Ticket Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active fw-bold text-white' if request.endpoint and request.endpoint.startswith('events_web.') else '' }}" href="{{ url_for('events_web.list_events') }}">Browse Events</a>
+                    </li>
+                    {% if current_user %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active fw-bold text-white' if request.endpoint and request.endpoint.startswith('bookings_web.') else '' }}" href="{{ url_for('bookings_web.booking_history') }}">My Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active fw-bold text-white' if request.endpoint and request.endpoint.startswith('documents_web.') else '' }}" href="{{ url_for('documents_web.list_documents') }}">My Documents</a>
+                    </li>
+                    {% if current_user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active fw-bold text-white' if request.endpoint and request.endpoint.startswith('admin_web.') else 'text-white' }}" href="{{ url_for('admin_web.dashboard') }}">Admin Dashboard</a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if current_user %}
+                    <span class="navbar-text me-3 text-white">
+                        User: <strong>{{ current_user.username }}</strong> ({{ current_user.role }})
+                    </span>
+                    <form method="POST" action="{{ url_for('auth_web.logout') }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('auth_web.login') }}" class="btn btn-outline-light btn-sm me-2">Login</a>
+                    <a href="{{ url_for('auth_web.register') }}" class="btn btn-light btn-sm">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <main class="container">
+    <!-- Main Content Area -->
+    <main class="container my-4 flex-grow-1">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            {% set alert_type = 'info' %}
+                            {% if category == 'error' or category == 'danger' %}
+                                {% set alert_type = 'danger' %}
+                            {% elif category == 'success' %}
+                                {% set alert_type = 'success' %}
+                            {% elif category == 'warning' %}
+                                {% set alert_type = 'warning' %}
+                            {% endif %}
+                            <div class="alert alert-{{ alert_type }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <p>&copy; 2026 Ticket Booking System. All rights reserved.</p>
+    <!-- Footer -->
+    <footer class="bg-white border-top py-3 mt-auto">
+        <div class="container text-center text-muted small">
+            <p class="mb-0">&copy; 2026 Ticket Booking System. All rights reserved.</p>
+        </div>
     </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

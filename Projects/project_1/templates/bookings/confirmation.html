@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Details #{{ booking.booking_reference or booking.id }} - Ticket Booking System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('bookings_web.booking_history') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to My Bookings</a>
+            <span class="badge bg-light text-dark border p-2">Reference: <strong>{{ booking.booking_reference or ('#' ~ booking.id) }}</strong></span>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h2 class="h4 fw-bold mb-0">Booking Confirmation</h2>
+                <div>
+                    {% set bs = booking.booking_status.status_name if booking.booking_status else 'Reserved' %}
+                    {% if bs|lower == 'confirmed' %}
+                        <span class="badge bg-success py-2 px-3">Confirmed</span>
+                    {% elif bs|lower == 'cancelled' %}
+                        <span class="badge bg-danger py-2 px-3">Cancelled</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark py-2 px-3">{{ bs|capitalize }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Event & Schedule Details -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted text-uppercase small fw-bold">Event</h6>
+                        <h5 class="fw-bold mb-1">{{ booking.schedule.event.name if booking.schedule and booking.schedule.event else 'Event' }}</h5>
+                        <p class="text-muted small mb-0">{{ booking.schedule.event.about if booking.schedule and booking.schedule.event and booking.schedule.event.about else '' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted text-uppercase small fw-bold">Showtime & Venue</h6>
+                        <p class="mb-1 fw-bold">
+                            {{ booking.schedule.start_datetime.strftime('%A, %B %d, %Y at %I:%M %p') if booking.schedule and booking.schedule.start_datetime else 'N/A' }}
+                        </p>
+                        <p class="text-muted small mb-0">
+                            {{ booking.schedule.venue.name if booking.schedule and booking.schedule.venue else 'Venue' }} - {{ booking.schedule.venue.city if booking.schedule and booking.schedule.venue else '' }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Reserved Seats List -->
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Reserved Seats</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Seat</th>
+                                <th>Section</th>
+                                <th>Type</th>
+                                <th class="text-end">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in booking.booking_items %}
+                            <tr>
+                                <td class="fw-bold">{{ item.seat.row }}{{ item.seat.number if item.seat else '' }}</td>
+                                <td>{{ item.seat.section.name if item.seat and item.seat.section else 'Section' }}</td>
+                                <td>{{ item.seat.seat_type if item.seat else 'Regular' }}</td>
+                                <td class="text-end">₹{{ "%.2f"|format(item.price) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="3" class="text-end">Total Amount:</td>
+                                <td class="text-end">₹{{ "%.2f"|format(booking.total_amount) if booking.total_amount else '0.00' }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Payment Status Card -->
+                <div class="card bg-light border-0 p-3 mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <span class="text-muted small d-block">Payment Mode:</span>
+                            <strong>{{ booking.payment_mode.mode_name if booking.payment_mode else 'Not selected' }}</strong>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                            <span class="text-muted small d-block">Payment Status:</span>
+                            {% set ps = booking.payment_status.status_name if booking.payment_status else 'Pending' %}
+                            {% if ps|lower == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif ps|lower == 'refunded' %}
+                                <span class="badge bg-info">Refunded</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ ps|capitalize }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled' %}
+                        <form method="POST" action="{{ url_for('bookings_web.cancel_booking_ui', booking_id=booking.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Booking</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if (not booking.payment_status or booking.payment_status.status_name|lower != 'completed') and (not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled') %}
+                        <a href="{{ url_for('bookings_web.pay_booking_form', booking_id=booking.id) }}" class="btn btn-success">
+                            Proceed to Payment
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('events_web.list_events') }}" class="btn btn-primary">Browse More Events</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -84,3 +84,25 @@ class EventDAO:
             .where(event_genres.c.event_id == event_id)
         )
         return db.session.execute(stmt).scalars().all()
+
+    def get_trending_event_this_week(self):
+        """Fetch the trending event with the most booked tickets in the last 7 days."""
+        from models.booking import Booking, BookingItem
+        from models.schedule import EventSchedule
+        from datetime import datetime, timedelta, timezone
+
+        one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        stmt = (
+            db.select(Event, db.func.count(BookingItem.id).label("ticket_count"))
+            .join(EventSchedule, Event.id == EventSchedule.event_id)
+            .join(Booking, EventSchedule.id == Booking.schedule_id)
+            .join(BookingItem, Booking.id == BookingItem.booking_id)
+            .where(Booking.created_at >= one_week_ago)
+            .group_by(Event.id)
+            .order_by(db.desc("ticket_count"))
+            .limit(1)
+        )
+        result = db.session.execute(stmt).first()
+        if result:
+            return result[0]
+        return None

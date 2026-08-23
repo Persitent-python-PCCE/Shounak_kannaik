@@ -5,7 +5,7 @@ Defines create_app() to instantiate, configure, and assemble the Flask applicati
 with database connections, migration hooks, authentication managers, and blueprint routing.
 """
 
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_cors import CORS
 from config.settings import DevelopmentConfig
 from config.database import db, migrate, login_manager
@@ -25,6 +25,16 @@ from controller.api_controller import api_controller
 from controller.payment_controller import payment_controller
 from controller.document_controller import document_controller
 from controller.schedule_controller import schedule_controller
+
+
+# Import Web UI controllers
+from controller.web.auth_web_controller import auth_web
+from controller.web.events_web_controller import events_web
+from controller.web.bookings_web_controller import bookings_web
+from controller.web.payments_web_controller import payments_web
+from controller.web.documents_web_controller import documents_web
+from controller.web.admin_web_controller import admin_web
+from service.auth_service import AuthService
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -52,6 +62,45 @@ def create_app(config_class=DevelopmentConfig):
     def load_user(user_id):
         return UserDAO().get_by_id(int(user_id))
 
+    # Context processor to inject current_user into templates
+    @app.context_processor
+    def inject_current_user():
+        from flask import request, g
+        token = request.cookies.get("access_token_cookie")
+        if not token:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+        if token:
+            try:
+                auth_svc = AuthService(UserDAO())
+                payload = auth_svc.verify_token(token)
+                uid = payload.get("user_id")
+                user = UserDAO().get_by_id(uid)
+                if user:
+                    return {
+                        "current_user": {
+                            "id": user.id,
+                            "user_id": user.id,
+                            "username": user.username,
+                            "role": user.role,
+                            "email": user.email
+                        }
+                    }
+                elif payload.get("role"):
+                    return {
+                        "current_user": {
+                            "id": uid,
+                            "user_id": uid,
+                            "username": "User",
+                            "role": payload.get("role"),
+                            "email": ""
+                        }
+                    }
+            except Exception:
+                pass
+        return {"current_user": None}
+
     # Register Blueprints with url prefixes
     app.register_blueprint(auth_controller, url_prefix="/auth")
     app.register_blueprint(event_controller, url_prefix="/events")
@@ -63,14 +112,20 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(document_controller, url_prefix="/documents")
     app.register_blueprint(schedule_controller, url_prefix="/schedules")
 
-    # Root redirect / health route
+    # Register Web UI Blueprints
+    app.register_blueprint(auth_web, url_prefix="/ui")
+    app.register_blueprint(events_web, url_prefix="/ui")
+    app.register_blueprint(bookings_web, url_prefix="/ui")
+    app.register_blueprint(payments_web, url_prefix="/ui")
+    app.register_blueprint(documents_web, url_prefix="/ui")
+    app.register_blueprint(admin_web, url_prefix="/ui/admin")
+
+    # Root redirect / health route 
     @app.route("/")
     def index():
-        from flask import jsonify
-        return jsonify({"message": "Ticket Booking API is running"}), 200
-
+        return redirect(url_for("events_web.list_events"))
     return app
-
+ 
 
 if __name__ == "__main__":
     app = create_app(DevelopmentConfig)

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Event' if is_edit else 'Create Event' }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('admin_web.manage_events') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Events</a>
+            <h1 class="h4 fw-bold mb-0">{{ 'Edit Event' if is_edit else 'Create New Event' }}</h1>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ action_url }}" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Event Name <span class="text-danger">*</span></label>
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), id="name", placeholder="Enter event name") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="about" class="form-label">About / Description</label>
+                        {{ form.about(class="form-control" + (" is-invalid" if form.about.errors else ""), id="about", rows=4, placeholder="Enter detailed event description") }}
+                        {% if form.about.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.about.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="event_type_id" class="form-label">Event Type</label>
+                            {{ form.event_type_id(class="form-select" + (" is-invalid" if form.event_type_id.errors else ""), id="event_type_id") }}
+                            {% if form.event_type_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.event_type_id.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="age_rating" class="form-label">Age Rating</label>
+                            {{ form.age_rating(class="form-select" + (" is-invalid" if form.age_rating.errors else ""), id="age_rating") }}
+                            {% if form.age_rating.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.age_rating.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="poster_image" class="form-label">Poster Image (Optional - PNG, JPG, JPEG, WEBP)</label>
+                        {{ form.poster_image(class="form-control" + (" is-invalid" if form.poster_image.errors else ""), id="poster_image") }}
+                        {% if form.poster_image.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.poster_image.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if current_poster %}
+                        <div class="mt-2">
+                            <small class="text-muted d-block mb-1">Current Poster:</small>
+                            <img src="/{{ current_poster }}" alt="Current Poster" style="height: 100px;" class="rounded border">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if not is_edit %}
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <h6 class="fw-bold mb-1">Event Schedule (Optional)</h6>
+                        <p class="text-muted small mb-3">Optionally schedule this event at a venue right away.</p>
+
+                        <div class="mb-3">
+                            <label for="venue_id" class="form-label">Venue</label>
+                            {{ form.venue_id(class="form-select" + (" is-invalid" if form.venue_id.errors else ""), id="venue_id") }}
+                            {% if form.venue_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.venue_id.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label for="start_datetime" class="form-label">Start Date & Time</label>
+                                {{ form.start_datetime(class="form-control" + (" is-invalid" if form.start_datetime.errors else ""), id="start_datetime") }}
+                                {% if form.start_datetime.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.start_datetime.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="end_datetime" class="form-label">End Date & Time</label>
+                                {{ form.end_datetime(class="form-control" + (" is-invalid" if form.end_datetime.errors else ""), id="end_datetime") }}
+                                {% if form.end_datetime.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.end_datetime.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('admin_web.manage_events') }}" class="btn btn-outline-secondary">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

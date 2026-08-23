@@ -1,18 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Events - Ticket Booking App{% endblock %}
+{% block title %}Browse Events - Ticket Booking System{% endblock %}
 
 {% block content %}
-<section class="events-container">
-    <h2>Available Events</h2>
-    {% if events %}
-        <ul>
-        {% for event in events %}
-            <li>Event #{{ event.id }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No events scheduled currently.</p>
-    {% endif %}
-</section>
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold mb-3">Browse Events</h1>
+        
+        <!-- Search & Filter Card -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-3 bg-white rounded">
+                <form method="GET" action="{{ url_for('events_web.list_events') }}" class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filter_name" class="form-label small text-muted mb-1">Event Name</label>
+                        <input type="text" class="form-control form-control-sm" id="filter_name" name="name" value="{{ request.args.get('name', '') }}" placeholder="Search by name">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filter_type" class="form-label small text-muted mb-1">Event Type</label>
+                        <select class="form-select form-select-sm" id="filter_type" name="event_type_id">
+                            <option value="">All Types</option>
+                            {% for et in event_types %}
+                            <option value="{{ et.id }}" {% if request.args.get('event_type_id') == et.id|string %}selected{% endif %}>{{ et.type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filter_genre" class="form-label small text-muted mb-1">Genre</label>
+                        <select class="form-select form-select-sm" id="filter_genre" name="genre_id">
+                            <option value="">All Genres</option>
+                            {% for g in genres %}
+                            <option value="{{ g.id }}" {% if request.args.get('genre_id') == g.id|string %}selected{% endif %}>{{ g.genre_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filter_age" class="form-label small text-muted mb-1">Age Rating</label>
+                        <select class="form-select form-select-sm" id="filter_age" name="age_rating">
+                            <option value="">All Ratings</option>
+                            <option value="All Ages" {% if request.args.get('age_rating') == 'All Ages' %}selected{% endif %}>All Ages</option>
+                            <option value="PG" {% if request.args.get('age_rating') == 'PG' %}selected{% endif %}>PG</option>
+                            <option value="UA 13+" {% if request.args.get('age_rating') == 'UA 13+' %}selected{% endif %}>UA 13+</option>
+                            <option value="UA 16+" {% if request.args.get('age_rating') == 'UA 16+' %}selected{% endif %}>UA 16+</option>
+                            <option value="18+ / A" {% if request.args.get('age_rating') == '18+ / A' %}selected{% endif %}>18+ / A</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+                        <a href="{{ url_for('events_web.list_events') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Event Cards Grid -->
+        {% if events %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for event in events %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="bg-dark text-center d-flex align-items-center justify-content-center" style="height: 260px; overflow: hidden; border-top-left-radius: calc(0.375rem - 1px); border-top-right-radius: calc(0.375rem - 1px);">
+                        {% if event.poster_image_path %}
+                        <img src="/{{ event.poster_image_path }}" class="img-fluid" alt="{{ event.name }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% else %}
+                        <div class="text-white-50 p-4">
+                            <div class="small">No Poster Available</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">{{ event.name }}</h5>
+                            <span class="badge bg-secondary">{{ event.age_rating or 'All Ages' }}</span>
+                        </div>
+                        <p class="card-text text-muted small flex-grow-1">
+                            {{ event.about|truncate(120) if event.about else 'No description available.' }}
+                        </p>
+                        <div class="mt-3">
+                            <a href="{{ url_for('events_web.event_detail', event_id=event.id) }}" class="btn btn-outline-primary btn-sm w-100">View Schedules & Book</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card p-5 text-center text-muted border-0 shadow-sm">
+            <h4 class="h5">No events found matching your criteria.</h4>
+            <p class="mb-3">Try adjusting or clearing your filters to see more events.</p>
+            <div>
+                <a href="{{ url_for('events_web.list_events') }}" class="btn btn-primary btn-sm">View All Events</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

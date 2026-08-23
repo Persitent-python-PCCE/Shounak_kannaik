@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Venue' if is_edit else 'Create Venue' }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-md-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('admin_web.manage_venues') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Venues</a>
+            <h1 class="h4 fw-bold mb-0">{{ 'Edit Venue' if is_edit else 'Create New Venue' }}</h1>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ action_url }}" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Venue Name <span class="text-danger">*</span></label>
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), id="name", placeholder="e.g. Grand Theatre") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Street Address <span class="text-danger">*</span></label>
+                        {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), id="address", placeholder="e.g. 123 Main Road") }}
+                        {% if form.address.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.address.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                            {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), id="city", placeholder="e.g. Mumbai") }}
+                            {% if form.city.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+                            {{ form.state(class="form-control" + (" is-invalid" if form.state.errors else ""), id="state", placeholder="e.g. Maharashtra") }}
+                            {% if form.state.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.state.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                            {{ form.country(class="form-control" + (" is-invalid" if form.country.errors else ""), id="country", placeholder="e.g. India") }}
+                            {% if form.country.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.country.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="capacity" class="form-label">Total Capacity <span class="text-muted small">(Auto-filled from sections if empty)</span></label>
+                            {{ form.capacity(class="form-control" + (" is-invalid" if form.capacity.errors else ""), id="capacity", placeholder="e.g. 500") }}
+                            {% if form.capacity.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.capacity.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if not is_edit %}
+                    <!-- Sections and Seating Layout Builder -->
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0">Seating Sections & Automatic Seat Generation</h6>
+                            <span class="badge bg-primary" id="total_seats_badge">0 Total Seats</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            Enter the number of sections. The system will automatically generate alphabetical rows (A, B, C...) and numbered seats (A1, A2, A3...) in the backend.
+                        </p>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="section_count_input" class="form-label fw-semibold">Number of Sections</label>
+                                <input type="number" id="section_count_input" class="form-control" min="0" max="20" placeholder="e.g. 2" value="0">
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Section Container -->
+                        <div id="sections_container" class="d-flex flex-column gap-3"></div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('admin_web.manage_venues') }}" class="btn btn-outline-secondary">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not is_edit %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const sectionCountInput = document.getElementById("section_count_input");
+    const sectionsContainer = document.getElementById("sections_container");
+    const totalSeatsBadge = document.getElementById("total_seats_badge");
+    const capacityInput = document.getElementById("capacity");
+
+    function getRowLabel(index) {
+        let result = "";
+        index += 1;
+        while (index > 0) {
+            let rem = (index - 1) % 26;
+            result = String.fromCharCode(65 + rem) + result;
+            index = Math.floor((index - 1) / 26);
+        }
+        return result;
+    }
+
+    function updateTotalSeats() {
+        let total = 0;
+        const rowInputs = document.querySelectorAll(".sec-row-count");
+        const seatInputs = document.querySelectorAll(".sec-seats-per-row");
+        const previewTexts = document.querySelectorAll(".sec-preview-text");
+
+        rowInputs.forEach((rIn, i) => {
+            const rows = parseInt(rIn.value) || 0;
+            const seats = parseInt(seatInputs[i].value) || 0;
+            const secTotal = rows * seats;
+            total += secTotal;
+
+            if (rows > 0 && seats > 0) {
+                const firstRow = getRowLabel(0);
+                const lastRow = getRowLabel(rows - 1);
+                previewTexts[i].textContent = `${secTotal} seats (Rows ${firstRow} to ${lastRow}, e.g. ${firstRow}1..${firstRow}${seats})`;
+            } else {
+                previewTexts[i].textContent = "0 seats";
+            }
+        });
+
+        totalSeatsBadge.textContent = `${total} Total Seats`;
+        if (total > 0 && (!capacityInput.value || parseInt(capacityInput.value) < total)) {
+            capacityInput.value = total;
+        }
+    }
+
+    sectionCountInput.addEventListener("input", function() {
+        const count = Math.min(Math.max(parseInt(this.value) || 0, 0), 20);
+        sectionsContainer.innerHTML = "";
+
+        for (let i = 0; i < count; i++) {
+            const secCard = document.createElement("div");
+            secCard.className = "card border bg-white p-3 shadow-sm";
+            secCard.innerHTML = `
+                <div class="fw-semibold text-primary mb-2">Section #${i + 1}</div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Section Name <span class="text-danger">*</span></label>
+                        <input type="text" name="section_name[]" class="form-control form-control-sm" placeholder="e.g. Balcony" required value="${i === 0 ? 'Main Hall' : (i === 1 ? 'Balcony' : 'Section ' + (i+1))}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Price (₹)</label>
+                        <input type="number" step="0.01" min="0" name="section_price[]" class="form-control form-control-sm" placeholder="0.00" value="150.00">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Row Count <span class="text-danger">*</span></label>
+                        <input type="number" min="1" max="100" name="row_count[]" class="form-control form-control-sm sec-row-count" placeholder="Rows (e.g. 5)" value="5" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Seats per Row <span class="text-danger">*</span></label>
+                        <input type="number" min="1" max="100" name="seats_per_row[]" class="form-control form-control-sm sec-seats-per-row" placeholder="Seats (e.g. 10)" value="10" required>
+                    </div>
+                </div>
+                <div class="mt-2 text-muted small sec-preview-text">50 seats (Rows A to E, e.g. A1..A10)</div>
+            `;
+            sectionsContainer.appendChild(secCard);
+        }
+
+        sectionsContainer.querySelectorAll("input").forEach(inp => {
+            inp.addEventListener("input", updateTotalSeats);
+        });
+
+        updateTotalSeats();
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
