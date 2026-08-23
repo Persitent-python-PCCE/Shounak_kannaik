@@ -108,6 +108,8 @@
                                 <span class="badge bg-success">Completed</span>
                                 {% elif ps|lower == 'refunded' %}
                                 <span class="badge bg-info">Refunded</span>
+                                {% elif ps|lower == 'expired' %}
+                                <span class="badge bg-secondary">Expired</span>
                                 {% else %}
                                 <span class="badge bg-warning text-dark">{{ ps|capitalize }}</span>
                                 {% endif %}

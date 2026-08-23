@@ -2,6 +2,7 @@
 BookingStatus, Booking, and BookingItem entity model definitions.
 """
 
+from datetime import datetime, timezone
 import uuid
 from config.database import db
 
@@ -39,8 +40,8 @@ class Booking(db.Model):
     payment_status_id = db.Column(db.Integer, db.ForeignKey("payment_statuses.id"), nullable=True)
     booking_status_id = db.Column(db.Integer, db.ForeignKey("booking_statuses.id"), nullable=True)
     total_amount = db.Column(db.Numeric(10, 2), nullable=True, default=0.00)
-    created_at = db.Column(db.DateTime(timezone=True), default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), default=db.func.now(), onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     user = db.relationship("User", back_populates="bookings")

@@ -56,6 +56,13 @@ def process_payment_ui():
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
 
+    # Expiry / Status guard
+    is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
+    is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
+    if is_cancelled or is_expired:
+        flash("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.", "warning")
+        return redirect(url_for("bookings_web.booking_history"))
+
     # Update payment mode on the booking
     booking.payment_mode_id = int(payment_mode_id)
     BookingDAO().update_booking(booking)
@@ -88,6 +95,13 @@ def show_qr_page(booking_id):
     user_role = g.current_user.get("role")
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
+
+    # Expiry / Status guard
+    is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
+    is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
+    if is_cancelled or is_expired:
+        flash("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.", "warning")
+        return redirect(url_for("bookings_web.booking_history"))
 
     payment_target_url = request.host_url.rstrip("/") + url_for(
         "payments_web.complete_payment_scan",

@@ -5,7 +5,7 @@ This class is the ONLY place allowed to execute database queries (db.session,
 Model.query, etc.) related to Venue entities.
 """
 
-from models.venue import Venue
+from models.venue import Venue, Section, Seat
 from config.database import db
 
 
@@ -15,10 +15,17 @@ class VenueDAO:
     Holds no constructor arguments and interacts directly with the global db instance.
     """
     def get_all_venues(self):
-        return Venue.query.all()
+        stmt = db.select(Venue).options(
+            db.selectinload(Venue.sections).selectinload(Section.seats)
+        )
+        return db.session.execute(stmt).scalars().all()
 
     def get_by_id(self, venue_id):
-        return db.session.get(Venue, venue_id)
+        stmt = db.select(Venue).options(
+            db.selectinload(Venue.sections).selectinload(Section.seats)
+        ).where(Venue.id == venue_id)
+        return db.session.execute(stmt).scalar_one_or_none()
+
 
     def create_venue(self, venue):
         db.session.add(venue)
@@ -38,7 +45,9 @@ class VenueDAO:
         return Venue.query.filter_by(name=name).first()
     
     def filter_venue(self, filters: dict):
-        query = db.select(Venue)
+        query = db.select(Venue).options(
+            db.selectinload(Venue.sections).selectinload(Section.seats)
+        )
 
         if filters.get("name"):
             name_filter = filters["name"]
@@ -58,9 +67,12 @@ class VenueDAO:
     
     def get_venue_by_name(self, name):
         venues = db.session.execute(
-            db.select(Venue).where(Venue.name.ilike(f"%{name}%"))
+            db.select(Venue).options(
+                db.selectinload(Venue.sections).selectinload(Section.seats)
+            ).where(Venue.name.ilike(f"%{name}%"))
         ).scalars().all()
         return venues
+
 
     def create_sections_and_seats(self, venue_id, sections_data):
         """

@@ -67,6 +67,8 @@
                                     <span class="badge bg-success">Completed</span>
                                 {% elif ps|lower == 'refunded' %}
                                     <span class="badge bg-info">Refunded</span>
+                                {% elif ps|lower == 'expired' %}
+                                    <span class="badge bg-secondary">Expired</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark">{{ ps|capitalize }}</span>
                                 {% endif %}
@@ -75,11 +77,11 @@
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ url_for('bookings_web.booking_detail', booking_id=b.id) }}" class="btn btn-outline-secondary">Details</a>
                                     
-                                    {% if (not b.payment_status or b.payment_status.status_name|lower != 'completed') and (not b.booking_status or b.booking_status.status_name|lower != 'cancelled') %}
+                                    {% if (b.payment_status and b.payment_status.status_name|lower == 'pending') and (not b.booking_status or b.booking_status.status_name|lower != 'cancelled') %}
                                     <a href="{{ url_for('bookings_web.pay_booking_form', booking_id=b.id) }}" class="btn btn-primary">Pay Now</a>
                                     {% endif %}
 
-                                    {% if not b.booking_status or b.booking_status.status_name|lower != 'cancelled' %}
+                                    {% if (not b.booking_status or b.booking_status.status_name|lower != 'cancelled') and (not b.payment_status or b.payment_status.status_name|lower not in ['expired', 'refunded']) %}
                                     <form method="POST" action="{{ url_for('bookings_web.cancel_booking_ui', booking_id=b.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
                                         <button type="submit" class="btn btn-outline-danger">Cancel</button>

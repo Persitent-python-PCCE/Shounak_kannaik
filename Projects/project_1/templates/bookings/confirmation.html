@@ -89,6 +89,8 @@
                                 <span class="badge bg-success">Completed</span>
                             {% elif ps|lower == 'refunded' %}
                                 <span class="badge bg-info">Refunded</span>
+                            {% elif ps|lower == 'expired' %}
+                                <span class="badge bg-secondary">Expired</span>
                             {% else %}
                                 <span class="badge bg-warning text-dark">{{ ps|capitalize }}</span>
                             {% endif %}
@@ -99,7 +101,7 @@
                 <!-- Actions -->
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        {% if not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled' %}
+                        {% if (not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled') and (not booking.payment_status or booking.payment_status.status_name|lower not in ['expired', 'refunded']) %}
                         <form method="POST" action="{{ url_for('bookings_web.cancel_booking_ui', booking_id=booking.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Booking</button>
@@ -107,7 +109,7 @@
                         {% endif %}
                     </div>
                     <div>
-                        {% if (not booking.payment_status or booking.payment_status.status_name|lower != 'completed') and (not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled') %}
+                        {% if (booking.payment_status and booking.payment_status.status_name|lower == 'pending') and (not booking.booking_status or booking.booking_status.status_name|lower != 'cancelled') %}
                         <a href="{{ url_for('bookings_web.pay_booking_form', booking_id=booking.id) }}" class="btn btn-success">
                             Proceed to Payment
                         </a>

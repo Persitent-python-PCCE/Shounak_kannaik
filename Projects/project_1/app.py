@@ -9,6 +9,7 @@ from flask import Flask, redirect, url_for
 from flask_cors import CORS
 from config.settings import DevelopmentConfig
 from config.database import db, migrate, login_manager
+from config.cache import cache
 from dao.user_dao import UserDAO
 import models  # Ensure all SQLAlchemy models are registered for migrations
 
@@ -54,6 +55,7 @@ def create_app(config_class=DevelopmentConfig):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = "auth_controller.login"
+    cache.init_app(app)
 
     register_error_handlers(app)
     register_global_middleware(app)
