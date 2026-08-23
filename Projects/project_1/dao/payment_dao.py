@@ -32,10 +32,17 @@ class PaymentDAO:
         return db.session.get(PaymentStatus, status_id)
 
     def get_payment_status_by_name(self, status_name):
-        """Fetch a payment status by its unique status name."""
-        return db.session.execute(
-            db.select(PaymentStatus).where(PaymentStatus.status_name == status_name)
+        """Fetch a payment status by its unique status name (case-insensitive)."""
+        if not status_name:
+            return None
+        status = db.session.execute(
+            db.select(PaymentStatus).where(db.func.lower(PaymentStatus.status_name) == status_name.lower())
         ).scalar_one_or_none()
+        if not status and status_name.lower() in ["pending", "completed", "refunded", "expired", "failed"]:
+            status = PaymentStatus(status_name=status_name.lower())
+            db.session.add(status)
+            db.session.commit()
+        return status
 
     def create_transaction(self, transaction):
         """Persist a new PaymentTransaction record."""

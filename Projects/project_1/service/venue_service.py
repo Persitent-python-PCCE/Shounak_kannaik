@@ -1,9 +1,21 @@
 from models.venue import Venue
+from config.cache import cache
+
 
 class VenueService:
     def __init__(self, venue_dao):
         self.venue_dao = venue_dao
 
+    def __repr__(self):
+        return "VenueService"
+
+    def _invalidate_venue_caches(self):
+        try:
+            cache.delete_memoized(self.get_all_venues)
+        except Exception:
+            pass
+
+    @cache.memoize(timeout=300)
     def get_all_venues(self):
         return self.venue_dao.get_all_venues()
 
@@ -22,7 +34,9 @@ class VenueService:
             country = data.get("country"),
             capacity = data.get("capacity")
         )
-        return self.venue_dao.create_venue(venue)
+        created_venue = self.venue_dao.create_venue(venue)
+        self._invalidate_venue_caches()
+        return created_venue
 
     def update_venue(self, data):
         venue_id = data.get("venue_id")
@@ -42,13 +56,17 @@ class VenueService:
         if "capacity" in data and data["capacity"]:
             venue.capacity = data["capacity"]
         
-        return self.venue_dao.update_venue(venue)
+        updated_venue = self.venue_dao.update_venue(venue)
+        self._invalidate_venue_caches()
+        return updated_venue
     
     def delete_venue(self, venue_id):
         venue = self.get_by_id(venue_id)
         if not venue:
             raise ValueError("Venue not found.")
-        return self.venue_dao.delete_venue(venue)
+        deleted = self.venue_dao.delete_venue(venue)
+        self._invalidate_venue_caches()
+        return deleted
     
     def filter_venue(self, filters: dict):
         cleaned_filters= {}

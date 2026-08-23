@@ -90,6 +90,7 @@ class BookingService:
         Process/confirm a booking payment.
         Updates booking status to 'confirmed' and payment status to 'completed',
         and generates a PaymentTransaction record.
+        Rejects if booking has expired (past 5 minutes) or is cancelled.
         """
         import uuid
         from models.payment import PaymentTransaction
@@ -97,6 +98,30 @@ class BookingService:
         booking = self.get_booking_by_id(booking_id)
         if not booking:
             raise ValueError("Booking not found.")
+
+        # Check if booking is already cancelled or expired
+        is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
+        is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
+        if is_cancelled or is_expired:
+            raise ValueError("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.")
+
+        # Check if created_at has exceeded 5 minutes
+        if booking.created_at:
+            now_utc = datetime.now(timezone.utc)
+            if booking.created_at.tzinfo is not None:
+                diff_seconds = (now_utc - booking.created_at).total_seconds()
+            else:
+                diff_seconds = (now_utc.replace(tzinfo=None) - booking.created_at).total_seconds()
+
+            if diff_seconds > 300 and (not booking.payment_status or booking.payment_status.status_name.lower() != "completed"):
+                cancelled_status = self.booking_dao.get_booking_status_by_name("cancelled")
+                expired_status = self.payment_dao.get_payment_status_by_name("expired")
+                if cancelled_status:
+                    booking.booking_status_id = cancelled_status.id
+                if expired_status:
+                    booking.payment_status_id = expired_status.id
+                self.booking_dao.update_booking(booking)
+                raise ValueError("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.")
 
         if payment_mode_id:
             booking.payment_mode_id = int(payment_mode_id)

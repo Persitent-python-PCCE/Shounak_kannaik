@@ -116,6 +116,19 @@ def pay_booking_form(booking_id):
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
 
+    # Expiry / Status guard
+    is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
+    is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
+    is_completed = booking.payment_status and booking.payment_status.status_name.lower() == "completed"
+
+    if is_completed:
+        flash("This booking is already paid and confirmed.", "info")
+        return redirect(url_for("bookings_web.booking_detail", booking_id=booking.id))
+
+    if is_cancelled or is_expired:
+        flash("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.", "warning")
+        return redirect(url_for("bookings_web.booking_history"))
+
     payment_modes = payment_service.get_all_payment_modes()
     form = PaymentForm(booking_id=booking.id)
     form.payment_mode_id.choices = [(pm.id, f"{pm.mode_name} ({pm.description or ''})") for pm in payment_modes]

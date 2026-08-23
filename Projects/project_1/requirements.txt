@@ -11,3 +11,4 @@ PyJWT
 Flask-Cors
 qrcode
 pillow
+Flask-Caching

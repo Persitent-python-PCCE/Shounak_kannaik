@@ -6,6 +6,9 @@ Receives PaymentDAO via constructor injection to facilitate unit testing with mo
 """
 
 
+from config.cache import cache
+
+
 class PaymentService:
     """
     Service layer handling payment reference operations.
@@ -19,10 +22,16 @@ class PaymentService:
         """
         self.payment_dao = payment_dao
 
+    def __repr__(self):
+        return "PaymentService"
+
+    @cache.memoize(timeout=300)
     def get_all_payment_modes(self):
         """Retrieve all available payment modes."""
         return self.payment_dao.get_all_payment_modes()
 
+    @cache.memoize(timeout=300)
     def get_all_payment_statuses(self):
         """Retrieve all available payment statuses."""
         return self.payment_dao.get_all_payment_statuses()
+

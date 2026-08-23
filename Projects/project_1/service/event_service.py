@@ -6,6 +6,7 @@ Receives EventDAO via constructor injection to facilitate unit testing with mock
 """
 
 from models.event import Event
+from config.cache import cache
 
 
 class EventService:
@@ -21,6 +22,20 @@ class EventService:
         """
         self.event_dao = event_dao
 
+    def __repr__(self):
+        return "EventService"
+
+    def _invalidate_event_caches(self):
+        """Helper to clear cached event queries when data mutates."""
+        try:
+            cache.delete_memoized(self.get_all_events)
+            cache.delete_memoized(self.get_all_event_types)
+            cache.delete_memoized(self.get_all_genres)
+            cache.delete_memoized(self.get_trending_event_this_week)
+        except Exception:
+            pass
+
+    @cache.memoize(timeout=300)
     def get_all_events(self):
         """Retrieve all available events."""
         return self.event_dao.get_all_events()
@@ -52,10 +67,12 @@ class EventService:
 
         return self.event_dao.filter_events(cleaned_filters)
 
+    @cache.memoize(timeout=300)
     def get_all_event_types(self):
         """Retrieve all event types."""
         return self.event_dao.get_all_event_types()
 
+    @cache.memoize(timeout=300)
     def get_all_genres(self):
         """Retrieve all genres."""
         return self.event_dao.get_all_genres()
@@ -76,7 +93,9 @@ class EventService:
             age_rating=data.get("age_rating"),
             poster_image_path=data.get("poster_image_path"),
         )
-        return self.event_dao.create_event(event)
+        created_event = self.event_dao.create_event(event)
+        self._invalidate_event_caches()
+        return created_event
 
     def update_event(self, data):
         """Update existing event details."""
@@ -96,12 +115,16 @@ class EventService:
         if "poster_image_path" in data:
             event.poster_image_path = data["poster_image_path"]
 
-        return self.event_dao.update_event(event)
+        updated_event = self.event_dao.update_event(event)
+        self._invalidate_event_caches()
+        return updated_event
 
     def delete_event(self, event_id):
         """Delete an event by ID."""
         event = self.get_event_by_id(event_id)
-        return self.event_dao.delete_event(event)
+        deleted = self.event_dao.delete_event(event)
+        self._invalidate_event_caches()
+        return deleted
 
     def add_genre_to_event(self, event_id, genre_id):
         """Associate a genre with an event."""
@@ -114,8 +137,11 @@ class EventService:
         # Ensure event exists
         self.get_event_by_id(e_id)
         self.event_dao.add_genre_to_event(e_id, g_id)
+        self._invalidate_event_caches()
         return True
 
+    @cache.memoize(timeout=300)
     def get_trending_event_this_week(self):
         """Retrieve the trending event for the current week."""
         return self.event_dao.get_trending_event_this_week()
+

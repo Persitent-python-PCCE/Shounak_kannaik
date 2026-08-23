@@ -17,16 +17,28 @@ class EventDAO:
     """
 
     def get_all_events(self):
-        """Fetch all events from the database."""
-        return db.session.execute(db.select(Event)).scalars().all()
+        """Fetch all events from the database with eager loaded relationships."""
+        stmt = db.select(Event).options(
+            db.joinedload(Event.event_type),
+            db.selectinload(Event.genres)
+        )
+        return db.session.execute(stmt).scalars().all()
 
     def get_by_id(self, event_id):
-        """Fetch an event by primary key ID."""
-        return db.session.get(Event, event_id)
+        """Fetch an event by primary key ID with eager loaded relationships."""
+        stmt = db.select(Event).options(
+            db.joinedload(Event.event_type),
+            db.selectinload(Event.genres)
+        ).where(Event.id == event_id)
+        return db.session.execute(stmt).scalar_one_or_none()
+
 
     def filter_events(self, filters: dict):
-        """Filter events by name, event_type_id, genre_id, or age_rating."""
-        query = db.select(Event)
+        """Filter events by name, event_type_id, genre_id, or age_rating with eager loaded relationships."""
+        query = db.select(Event).options(
+            db.joinedload(Event.event_type),
+            db.selectinload(Event.genres)
+        )
         if filters.get("name"):
             query = query.where(Event.name.ilike(f"%{filters['name']}%"))
         if filters.get("event_type_id"):
@@ -38,6 +50,7 @@ class EventDAO:
         if filters.get("age_rating"):
             query = query.where(Event.age_rating == filters["age_rating"])
         return db.session.execute(query).scalars().all()
+
 
     def create_event(self, event):
         """Persist a new Event record."""
@@ -93,7 +106,7 @@ class EventDAO:
 
         one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
         stmt = (
-            db.select(Event, db.func.count(BookingItem.id).label("ticket_count"))
+            db.select(Event.id, db.func.count(BookingItem.id).label("ticket_count"))
             .join(EventSchedule, Event.id == EventSchedule.event_id)
             .join(Booking, EventSchedule.id == Booking.schedule_id)
             .join(BookingItem, Booking.id == BookingItem.booking_id)
@@ -102,7 +115,8 @@ class EventDAO:
             .order_by(db.desc("ticket_count"))
             .limit(1)
         )
-        result = db.session.execute(stmt).first()
-        if result:
-            return result[0]
+        row = db.session.execute(stmt).first()
+        if row:
+            return self.get_by_id(row[0])
         return None
+

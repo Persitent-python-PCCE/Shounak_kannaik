@@ -17,6 +17,7 @@ def setup_booking_fixtures(app):
         pending_payment = PaymentStatus(status_name="pending")
         completed_payment = PaymentStatus(status_name="completed")
         refunded_payment = PaymentStatus(status_name="refunded")
+        expired_payment = PaymentStatus(status_name="expired")
         payment_mode = PaymentMode(mode_name="Credit Card", description="Credit Card Payment")
         db.session.add_all([
             reserved_status,
@@ -24,6 +25,7 @@ def setup_booking_fixtures(app):
             pending_payment,
             completed_payment,
             refunded_payment,
+            expired_payment,
             payment_mode
         ])
 
@@ -153,6 +155,45 @@ def test_create_booking_lazy_expiry_success(app, client, customer_headers, custo
     # 3. New booking for same seats should now SUCCEED due to lazy expiry
     res2 = client.post("/bookings/", json=payload, headers=customer_headers)
     assert res2.status_code == 201
+
+    # 4. Verify old booking transitioned to cancelled and expired
+    with app.app_context():
+        old_booking = db.session.get(Booking, booking_id)
+        assert old_booking.booking_status.status_name.lower() == "cancelled"
+        assert old_booking.payment_status.status_name.lower() == "expired"
+
+
+def test_get_booked_seat_ids_excludes_expired(app, client, customer_headers, customer_user):
+    """Test that get_booked_seat_ids excludes seats from expired bookings so they render available."""
+    from service.booking_service import BookingService
+    from dao.booking_dao import BookingDAO
+    from dao.payment_dao import PaymentDAO
+
+    fixtures = setup_booking_fixtures(app)
+    payload = {
+        "user_id": customer_user.id,
+        "schedule_id": fixtures["schedule_id"],
+        "seat_ids": fixtures["seat_ids"],
+        "payment_mode_id": fixtures["payment_mode_id"]
+    }
+    res = client.post("/bookings/", json=payload, headers=customer_headers)
+    assert res.status_code == 201
+    booking_id = res.get_json()["booking"]["id"]
+
+    svc = BookingService(BookingDAO(), PaymentDAO())
+    # Immediately after booking, seats are in booked list
+    booked = svc.get_booked_seat_ids(fixtures["schedule_id"])
+    assert set(fixtures["seat_ids"]).issubset(booked)
+
+    # Backdate created_at past 5 minutes
+    with app.app_context():
+        b = db.session.get(Booking, booking_id)
+        b.created_at = datetime.now(timezone.utc) - timedelta(minutes=6)
+        db.session.commit()
+
+    # Now get_booked_seat_ids should lazily expire and return empty for these seats
+    booked_after = svc.get_booked_seat_ids(fixtures["schedule_id"])
+    assert not any(s in booked_after for s in fixtures["seat_ids"])
 
 
 def test_cancel_booking_success(app, client, customer_headers, customer_user):
