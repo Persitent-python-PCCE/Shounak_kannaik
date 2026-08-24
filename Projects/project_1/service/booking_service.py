@@ -1,49 +1,27 @@
-"""
-Booking Service.
-
-Handles business logic for seat reservation, ticket pricing, booking retrieval, and cancellation.
-Receives BookingDAO via constructor injection to facilitate unit testing with mock DAOs.
-"""
 from datetime import datetime, timedelta, timezone
 from dao.payment_dao import PaymentDAO
 from common.exceptions import AuthorizationError
 
 
 class BookingService:
-    """
-    Service layer handling booking and reservation workflows.
-    """
 
     def __init__(self, booking_dao, payment_dao=None):
-        """
-        Constructor injection of the BookingDAO and PaymentDAO dependencies.
-
-        :param booking_dao: BookingDAO instance (or fake/mock DAO in tests)
-        :param payment_dao: PaymentDAO instance (or fake/mock DAO in tests)
-        """
         self.booking_dao = booking_dao
         self.payment_dao = payment_dao or PaymentDAO()
 
     def get_booking_by_id(self, booking_id):
-        """Retrieve a booking by primary key ID."""
         booking = self.booking_dao.get_by_id(booking_id)
         if not booking:
             raise ValueError("Booking not found.")
         return booking
 
     def get_bookings_for_user(self, user_id):
-        """Retrieve all bookings associated with a specific user."""
         return self.booking_dao.get_bookings_for_user(user_id)
 
     def get_all_bookings(self):
-        """Retrieve all bookings across the system (admin access)."""
         return self.booking_dao.get_all_bookings()
 
     def cancel_booking(self, booking_id, user_id=None, role=None):
-        """
-        Cancel a booking by setting its status to 'cancelled' and payment status to 'refunded'.
-        Enforces ownership/admin authorization and 1-hour cancellation window before event start.
-        """
         booking = self.get_booking_by_id(booking_id)
 
         if user_id is not None and booking.user_id != user_id and role != "admin":
@@ -62,7 +40,7 @@ class BookingService:
 
         cancelled_status = self.booking_dao.get_booking_status_by_name("cancelled")
         refunded_status = self.payment_dao.get_payment_status_by_name("refunded")
-        
+
         booking.booking_status_id = cancelled_status.id
         booking.payment_status_id = refunded_status.id
 
@@ -80,18 +58,11 @@ class BookingService:
         )
 
     def get_booked_seat_ids(self, schedule_id):
-        """Retrieve unavailable/booked seat IDs for a given schedule."""
         if hasattr(self.booking_dao, "get_booked_seat_ids"):
             return self.booking_dao.get_booked_seat_ids(schedule_id)
         return set()
 
     def confirm_payment(self, booking_id, payment_mode_id=None, gateway_transaction_id=None):
-        """
-        Process/confirm a booking payment.
-        Updates booking status to 'confirmed' and payment status to 'completed',
-        and generates a PaymentTransaction record.
-        Rejects if booking has expired (past 5 minutes) or is cancelled.
-        """
         import uuid
         from models.payment import PaymentTransaction
 
@@ -99,13 +70,13 @@ class BookingService:
         if not booking:
             raise ValueError("Booking not found.")
 
-        # Check if booking is already cancelled or expired
+
         is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
         is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
         if is_cancelled or is_expired:
             raise ValueError("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.")
 
-        # Check if created_at has exceeded 5 minutes
+
         if booking.created_at:
             now_utc = datetime.now(timezone.utc)
             if booking.created_at.tzinfo is not None:

@@ -1,32 +1,17 @@
-"""
-Event Service.
-
-Handles business logic for event discovery, scheduling, catalog management, and administrative CRUD.
-Receives EventDAO via constructor injection to facilitate unit testing with mock DAOs.
-"""
 
 from models.event import Event
 from config.cache import cache
 
 
 class EventService:
-    """
-    Service layer handling event operations.
-    """
 
     def __init__(self, event_dao):
-        """
-        Constructor injection of the EventDAO dependency.
-
-        :param event_dao: EventDAO instance (or fake/mock DAO in tests)
-        """
         self.event_dao = event_dao
 
     def __repr__(self):
         return "EventService"
 
     def _invalidate_event_caches(self):
-        """Helper to clear cached event queries when data mutates."""
         try:
             cache.delete_memoized(self.get_all_events)
             cache.delete_memoized(self.get_all_event_types)
@@ -37,18 +22,27 @@ class EventService:
 
     @cache.memoize(timeout=300)
     def get_all_events(self):
-        """Retrieve all available events."""
         return self.event_dao.get_all_events()
 
+    def get_all_events_paginated(self, page=1, per_page=10):
+        try:
+            page = int(page)
+            per_page = int(per_page)
+        except (ValueError, TypeError):
+            page, per_page = 1, 10
+        if page < 1:
+            page = 1
+        if per_page < 1:
+            per_page = 10
+        return self.event_dao.get_all_events(page=page, per_page=per_page)
+
     def get_event_by_id(self, event_id):
-        """Retrieve an event by ID."""
         event = self.event_dao.get_by_id(event_id)
         if not event:
             raise ValueError("Event not found.")
         return event
 
-    def filter_events(self, filters: dict):
-        """Filter events with cleaned/validated parameters."""
+    def filter_events(self, filters: dict, page=None, per_page=None):
         cleaned_filters = {}
         if filters.get("name"):
             cleaned_filters["name"] = filters.get("name").strip()
@@ -65,24 +59,32 @@ class EventService:
         if filters.get("age_rating"):
             cleaned_filters["age_rating"] = filters.get("age_rating").strip()
 
+        if page is not None and per_page is not None:
+            try:
+                p = int(page)
+                pp = int(per_page)
+            except (ValueError, TypeError):
+                p, pp = 1, 10
+            if p < 1:
+                p = 1
+            if pp < 1:
+                pp = 10
+            return self.event_dao.filter_events(cleaned_filters, page=p, per_page=pp)
+
         return self.event_dao.filter_events(cleaned_filters)
 
     @cache.memoize(timeout=300)
     def get_all_event_types(self):
-        """Retrieve all event types."""
         return self.event_dao.get_all_event_types()
 
     @cache.memoize(timeout=300)
     def get_all_genres(self):
-        """Retrieve all genres."""
         return self.event_dao.get_all_genres()
 
     def get_genres_for_event(self, event_id):
-        """Retrieve all genres associated with a specific event."""
         return self.event_dao.get_genres_for_event(event_id)
 
     def create_event(self, data):
-        """Create and persist a new event."""
         if not data.get("name"):
             raise ValueError("Event name is required.")
 
@@ -98,7 +100,6 @@ class EventService:
         return created_event
 
     def update_event(self, data):
-        """Update existing event details."""
         event_id = data.get("event_id")
         if not event_id:
             raise ValueError("event_id is required.")
@@ -120,28 +121,44 @@ class EventService:
         return updated_event
 
     def delete_event(self, event_id):
-        """Delete an event by ID."""
         event = self.get_event_by_id(event_id)
         deleted = self.event_dao.delete_event(event)
         self._invalidate_event_caches()
         return deleted
 
     def add_genre_to_event(self, event_id, genre_id):
-        """Associate a genre with an event."""
         try:
             e_id = int(event_id)
             g_id = int(genre_id)
         except (ValueError, TypeError):
             raise ValueError("event_id and genre_id must be valid integers.")
 
-        # Ensure event exists
+
         self.get_event_by_id(e_id)
         self.event_dao.add_genre_to_event(e_id, g_id)
         self._invalidate_event_caches()
         return True
 
+    def set_genres_for_event(self, event_id, genre_ids):
+        try:
+            e_id = int(event_id)
+        except (ValueError, TypeError):
+            raise ValueError("event_id must be a valid integer.")
+
+        self.get_event_by_id(e_id)
+        valid_ids = []
+        if genre_ids:
+            for gid in genre_ids:
+                try:
+                    val = int(gid)
+                    if val > 0:
+                        valid_ids.append(val)
+                except (ValueError, TypeError):
+                    continue
+        self.event_dao.set_genres_for_event(e_id, valid_ids)
+        self._invalidate_event_caches()
+        return True
+
     @cache.memoize(timeout=300)
     def get_trending_event_this_week(self):
-        """Retrieve the trending event for the current week."""
         return self.event_dao.get_trending_event_this_week()
-

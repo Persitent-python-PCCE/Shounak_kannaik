@@ -21,7 +21,7 @@ class VenueService:
 
     def get_by_id(self, id):
         return self.venue_dao.get_by_id(id)
-    
+
     def get_venue_by_name(self, name):
         return self.venue_dao.get_venue_by_name(name)
 
@@ -55,11 +55,11 @@ class VenueService:
             venue.country = data["country"]
         if "capacity" in data and data["capacity"]:
             venue.capacity = data["capacity"]
-        
+
         updated_venue = self.venue_dao.update_venue(venue)
         self._invalidate_venue_caches()
         return updated_venue
-    
+
     def delete_venue(self, venue_id):
         venue = self.get_by_id(venue_id)
         if not venue:
@@ -67,7 +67,7 @@ class VenueService:
         deleted = self.venue_dao.delete_venue(venue)
         self._invalidate_venue_caches()
         return deleted
-    
+
     def filter_venue(self, filters: dict):
         cleaned_filters= {}
         if  filters.get("name"):
@@ -91,7 +91,6 @@ class VenueService:
         return self.venue_dao.filter_venue(cleaned_filters)
 
     def create_venue_with_layout(self, venue_data, sections_data=None):
-        """Create venue and its sections and seats."""
         total_seats = 0
         if sections_data:
             for s in sections_data:
@@ -112,4 +111,3 @@ class VenueService:
             self.venue_dao.create_sections_and_seats(venue.id, sections_data)
 
         return venue
-        

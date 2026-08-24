@@ -1,6 +1,3 @@
-"""
-Venue management form definitions.
-"""
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField
@@ -8,7 +5,6 @@ from wtforms.validators import DataRequired, NumberRange, Length, Optional
 
 
 class VenueForm(FlaskForm):
-    """Venue creation and edit form."""
     name = StringField("Venue Name", validators=[DataRequired(), Length(max=255)])
     address = StringField("Address", validators=[DataRequired(), Length(max=255)])
     city = StringField("City", validators=[DataRequired(), Length(max=255)])

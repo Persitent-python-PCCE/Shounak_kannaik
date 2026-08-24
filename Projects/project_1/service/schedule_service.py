@@ -1,48 +1,29 @@
-"""
-Schedule Service.
-
-Handles business logic for event schedule management, occurrence timing, venue coordination, and administrative CRUD.
-Receives ScheduleDAO via constructor injection to facilitate unit testing with mock DAOs.
-"""
 
 from datetime import datetime
 from models.schedule import EventSchedule
 
 
 class ScheduleService:
-    """
-    Service layer handling event schedule operations.
-    """
 
     def __init__(self, schedule_dao):
-        """
-        Constructor injection of the ScheduleDAO dependency.
-
-        :param schedule_dao: ScheduleDAO instance (or fake/mock DAO in tests)
-        """
         self.schedule_dao = schedule_dao
 
     def get_all_schedules(self):
-        """Retrieve all event schedules."""
         return self.schedule_dao.get_all_schedules()
 
     def get_schedule_by_id(self, schedule_id):
-        """Retrieve an event schedule by primary key ID."""
         schedule = self.schedule_dao.get_by_id(schedule_id)
         if not schedule:
             raise ValueError("Schedule not found.")
         return schedule
 
     def get_schedules_for_event(self, event_id):
-        """Retrieve all schedules for a specific event."""
         return self.schedule_dao.get_schedules_by_event_id(event_id)
 
     def get_schedules_for_venue(self, venue_id):
-        """Retrieve all schedules for a specific venue."""
         return self.schedule_dao.get_schedules_by_venue_id(venue_id)
 
     def filter_schedules(self, filters: dict):
-        """Filter event schedules by event_id, venue_id, status, or date range."""
         cleaned_filters = {}
         if filters.get("event_id"):
             try:
@@ -70,13 +51,12 @@ class ScheduleService:
         return self.schedule_dao.filter_schedules(cleaned_filters)
 
     def create_schedule(self, data):
-        """Create and persist a new event schedule."""
         if not data.get("event_id") or not data.get("venue_id"):
             raise ValueError("event_id and venue_id are required fields.")
         if not data.get("start_datetime") or not data.get("end_datetime"):
             raise ValueError("start_datetime and end_datetime are required fields.")
 
-        # Parse datetimes if passed as strings
+
         start_dt = data.get("start_datetime")
         if isinstance(start_dt, str):
             try:
@@ -104,7 +84,6 @@ class ScheduleService:
         return self.schedule_dao.create_schedule(schedule)
 
     def update_schedule(self, data):
-        """Update existing event schedule details."""
         schedule_id = data.get("schedule_id")
         if not schedule_id:
             raise ValueError("schedule_id is required.")
@@ -142,6 +121,5 @@ class ScheduleService:
         return self.schedule_dao.update_schedule(schedule)
 
     def delete_schedule(self, schedule_id):
-        """Delete an event schedule by ID."""
         schedule = self.get_schedule_by_id(schedule_id)
         return self.schedule_dao.delete_schedule(schedule)

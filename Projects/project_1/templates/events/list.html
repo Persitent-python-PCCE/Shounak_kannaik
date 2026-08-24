@@ -8,9 +8,10 @@
         <h1 class="h3 fw-bold mb-3">Browse Events</h1>
         
         <!-- Search & Filter Card -->
-        <div class="card shadow-sm border-0 mb-4">
+        <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-3 bg-white rounded">
                 <form method="GET" action="{{ url_for('events_web.list_events') }}" class="row g-2 align-items-end">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
                     <div class="col-md-3">
                         <label for="filter_name" class="form-label small text-muted mb-1">Event Name</label>
                         <input type="text" class="form-control form-control-sm" id="filter_name" name="name" value="{{ request.args.get('name', '') }}" placeholder="Search by name">
@@ -52,6 +53,36 @@
             </div>
         </div>
 
+        <!-- Pagination & Results Bar Below Filters -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 px-1 gap-2">
+            <div class="text-muted small">
+                {% if pagination.total > 0 %}
+                    Showing <span class="fw-bold">{{ (pagination.page - 1) * pagination.per_page + 1 }}</span> to <span class="fw-bold">{{ [pagination.page * pagination.per_page, pagination.total]|min }}</span> of <span class="fw-bold">{{ pagination.total }}</span> events
+                {% else %}
+                    Showing <span class="fw-bold">0</span> events
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="per_page_select" class="form-label small text-muted mb-0 text-nowrap">Events per page:</label>
+                <form method="GET" action="{{ url_for('events_web.list_events') }}" class="d-inline-block m-0">
+                    {% for key, value in request.args.items() %}
+                        {% if key not in ['per_page', 'page'] %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    <select name="per_page" id="per_page_select" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                        <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                        <option value="15" {% if per_page == 15 %}selected{% endif %}>15</option>
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                    </select>
+                    <noscript>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">Apply</button>
+                    </noscript>
+                </form>
+            </div>
+        </div>
+
         <!-- Event Cards Grid -->
         {% if events %}
         <div class="row row-cols-1 row-cols-md-3 g-4">
@@ -83,6 +114,39 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- Server-Side Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Events pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {# Previous Link #}
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('events_web.list_events', **dict(request.args, page=pagination.prev_num)) if pagination.has_prev else '#' }}" aria-label="Previous">
+                        &laquo; Prev
+                    </a>
+                </li>
+
+                {# Page Numbers with Smart Ellipsis #}
+                {% for p in pagination.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+                    {% if p %}
+                        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('events_web.list_events', **dict(request.args, page=p)) }}">{{ p }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {# Next Link #}
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('events_web.list_events', **dict(request.args, page=pagination.next_num)) if pagination.has_next else '#' }}" aria-label="Next">
+                        Next &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+
         {% else %}
         <div class="card p-5 text-center text-muted border-0 shadow-sm">
             <h4 class="h5">No events found matching your criteria.</h4>

@@ -1,19 +1,9 @@
-"""
-Document Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to Document entities.
-"""
 
 from models.document import UserDocument
 from config.database import db
 
 
 class DocumentDAO:
-    """
-    DAO handling database interactions for UserDocument records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
 
     def get_documents_for_user(self, user_id):
         """Fetch all documents belonging to a specific user."""

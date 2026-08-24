@@ -16,7 +16,6 @@ booking_service = BookingService(BookingDAO())
 @booking_controller.route("/", methods=["GET"])
 @authenticate
 def get_bookings():
-    """Endpoint to list bookings for the authenticated user."""
     user_id = g.current_user.get("user_id")
     try:
         bookings = booking_service.get_bookings_for_user(user_id)
@@ -28,7 +27,6 @@ def get_bookings():
 @booking_controller.route("/<int:booking_id>", methods=["GET"])
 @authenticate
 def get_booking_by_id(booking_id):
-    """Endpoint to get a specific booking by ID."""
     try:
         booking = booking_service.get_booking_by_id(booking_id)
         user_id = g.current_user.get("user_id")
@@ -80,7 +78,6 @@ def create_booking():
 @booking_controller.route("/<int:booking_id>/cancel", methods=["PATCH"])
 @authenticate
 def cancel_booking(booking_id):
-    """Endpoint to cancel a booking."""
     user_id = g.current_user.get("user_id")
     user_role = g.current_user.get("role")
     try:

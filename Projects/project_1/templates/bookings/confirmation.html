@@ -59,7 +59,7 @@
                         <tbody>
                             {% for item in booking.booking_items %}
                             <tr>
-                                <td class="fw-bold">{{ item.seat.row }}{{ item.seat.number if item.seat else '' }}</td>
+                                <td class="fw-bold">{{ item.seat.number if item.seat else '' }}</td>
                                 <td>{{ item.seat.section.name if item.seat and item.seat.section else 'Section' }}</td>
                                 <td>{{ item.seat.seat_type if item.seat else 'Regular' }}</td>
                                 <td class="text-end">₹{{ "%.2f"|format(item.price) }}</td>

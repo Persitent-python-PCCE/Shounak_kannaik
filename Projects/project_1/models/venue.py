@@ -1,14 +1,8 @@
-"""
-Venue, Section, and Seat entity model definitions.
-"""
 
 from config.database import db
 
 
 class Venue(db.Model):
-    """
-    Venue model representing physical event locations.
-    """
     __tablename__ = "venues"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -24,7 +18,6 @@ class Venue(db.Model):
     event_schedules = db.relationship("EventSchedule", back_populates="venue", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "name": self.name,
@@ -38,9 +31,6 @@ class Venue(db.Model):
 
 
 class Section(db.Model):
-    """
-    Section model representing distinct seating areas within a venue.
-    """
     __tablename__ = "sections"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -53,7 +43,6 @@ class Section(db.Model):
     seats = db.relationship("Seat", back_populates="section", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "venue_id": self.venue_id,
@@ -64,9 +53,6 @@ class Section(db.Model):
 
 
 class Seat(db.Model):
-    """
-    Seat model representing individual assignable seats within a section.
-    """
     __tablename__ = "seats"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -79,7 +65,6 @@ class Seat(db.Model):
     booking_items = db.relationship("BookingItem", back_populates="seat")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "section_id": self.section_id,

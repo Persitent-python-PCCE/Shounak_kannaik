@@ -1,8 +1,3 @@
-"""
-Events Web UI Controller.
-
-Handles public browsing, searching, filtering, and event schedule/seat map detail views.
-"""
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from service.event_service import EventService
@@ -23,34 +18,38 @@ payment_service = PaymentService(PaymentDAO())
 
 @events_web.route("/events", methods=["GET"])
 def list_events():
-    """List, search, and filter public events."""
-    filters = {k: v for k, v in request.args.items() if v}
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+    if per_page not in [5, 10, 15, 20]:
+        per_page = 10
+    if page < 1:
+        page = 1
+
+    filters = {k: v for k, v in request.args.items() if v and k not in ("page", "per_page")}
     try:
         if filters:
-            events = event_service.filter_events(filters)
+            pagination = event_service.filter_events(filters, page=page, per_page=per_page)
         else:
-            events = event_service.get_all_events()
+            pagination = event_service.get_all_events_paginated(page=page, per_page=per_page)
     except ValueError as e:
         flash(str(e), "warning")
-        events = event_service.get_all_events()
+        pagination = event_service.get_all_events_paginated(page=page, per_page=per_page)
 
     event_types = event_service.get_all_event_types()
     genres = event_service.get_all_genres()
 
     return render_template(
         "events/list.html",
-        events=events,
+        pagination=pagination,
+        events=pagination.items,
         event_types=event_types,
-        genres=genres
+        genres=genres,
+        per_page=per_page
     )
 
 
 @events_web.route("/events/<int:event_id>", methods=["GET"])
 def event_detail(event_id):
-    """
-    Display event details, schedule selection, and dynamic seat map
-    rendered via the internal service layer.
-    """
     try:
         event = event_service.get_event_by_id(event_id)
     except ValueError as e:
@@ -75,7 +74,7 @@ def event_detail(event_id):
         except ValueError as e:
             flash(str(e), "warning")
     elif schedules:
-        # Default to first schedule if available
+
         selected_schedule = schedules[0]
         booked_seat_ids = booking_service.get_booked_seat_ids(selected_schedule.id)
         if selected_schedule.venue:

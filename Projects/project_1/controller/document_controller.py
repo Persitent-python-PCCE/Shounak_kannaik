@@ -1,8 +1,3 @@
-"""
-Document Controller.
-
-Provides endpoints for managing and retrieving user KYC/verification documents.
-"""
 
 from flask import Blueprint, request, jsonify, g
 from service.document_service import DocumentService
@@ -17,7 +12,6 @@ document_service = DocumentService(DocumentDAO())
 @document_controller.route("/", methods=["GET"])
 @authenticate
 def get_user_documents():
-    """Endpoint to list documents belonging to the authenticated user."""
     user_id = g.current_user.get("user_id")
     try:
         documents = document_service.get_documents_for_user(user_id)
@@ -29,7 +23,6 @@ def get_user_documents():
 @document_controller.route("/<int:document_id>", methods=["GET"])
 @authenticate
 def get_document_by_id(document_id):
-    """Endpoint to get a specific document by ID."""
     try:
         document = document_service.get_document_by_id(document_id)
         user_id = g.current_user.get("user_id")
@@ -47,7 +40,6 @@ def get_document_by_id(document_id):
 @document_controller.route("/upload", methods=["POST"])
 @authenticate
 def upload_document():
-    """Endpoint for authenticated users to upload an identity/verification document."""
     user_id = g.current_user.get("user_id")
     id_file = request.files.get("id_document") or request.files.get("file") or request.files.get("document")
     doc_type = request.form.get("doc_type", "Govt ID")

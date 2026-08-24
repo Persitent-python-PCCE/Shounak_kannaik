@@ -1,6 +1,3 @@
-"""
-Custom route decorators for authentication and role-based access control (RBAC).
-"""
 from functools import wraps
 from flask import request, g
 from common.exceptions import AuthenticationError, AuthorizationError
@@ -12,10 +9,6 @@ auth_service = AuthService(UserDAO())
 
 
 def authenticate(f):
-    """
-    Decorator to ensure the requesting user is authenticated.
-    Redirects unauthenticated users to the login page or returns a 401 response.
-    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         auth_header = request.headers.get("Authorization")
@@ -35,10 +28,6 @@ def authenticate(f):
 
 
 def authorize(*allowed_roles):
-    """
-    Decorator to restrict access to administrator users only.
-    Returns 403 Forbidden or redirects if the current user lacks admin privileges.
-    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):

@@ -1,6 +1,3 @@
-"""
-BookingStatus, Booking, and BookingItem entity model definitions.
-"""
 
 from datetime import datetime, timezone
 import uuid
@@ -8,9 +5,6 @@ from config.database import db
 
 
 class BookingStatus(db.Model):
-    """
-    BookingStatus model representing status values for bookings (e.g., Pending, Confirmed, Cancelled).
-    """
     __tablename__ = "booking_statuses"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -19,7 +13,6 @@ class BookingStatus(db.Model):
     bookings = db.relationship("Booking", back_populates="booking_status")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "status_name": self.status_name,
@@ -27,9 +20,6 @@ class BookingStatus(db.Model):
 
 
 class Booking(db.Model):
-    """
-    Booking model representing a user's ticket reservation transaction.
-    """
     __tablename__ = "bookings"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -43,7 +33,7 @@ class Booking(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # Relationships
+
     user = db.relationship("User", back_populates="bookings")
     schedule = db.relationship("EventSchedule", back_populates="bookings")
     payment_mode = db.relationship("PaymentMode", back_populates="bookings")
@@ -53,7 +43,6 @@ class Booking(db.Model):
     transactions = db.relationship("PaymentTransaction", back_populates="booking", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "booking_reference": self.booking_reference,
@@ -69,9 +58,6 @@ class Booking(db.Model):
 
 
 class BookingItem(db.Model):
-    """
-    BookingItem model representing individual reserved seats/tickets under a booking.
-    """
     __tablename__ = "booking_items"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -80,12 +66,11 @@ class BookingItem(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=db.func.now())
 
-    # Relationships
+
     booking = db.relationship("Booking", back_populates="booking_items")
     seat = db.relationship("Seat", back_populates="booking_items")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "booking_id": self.booking_id,

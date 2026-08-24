@@ -1,8 +1,3 @@
-"""
-Payment Controller.
-
-Provides public endpoints for retrieving payment modes and payment status references.
-"""
 
 from flask import Blueprint, jsonify
 from service.payment_service import PaymentService
@@ -14,7 +9,6 @@ payment_service = PaymentService(PaymentDAO())
 
 @payment_controller.route("/modes", methods=["GET"])
 def get_payment_modes():
-    """Endpoint to list all supported payment modes."""
     try:
         modes = payment_service.get_all_payment_modes()
         return jsonify([m.to_dict() for m in modes]), 200
@@ -24,7 +18,6 @@ def get_payment_modes():
 
 @payment_controller.route("/statuses", methods=["GET"])
 def get_payment_statuses():
-    """Endpoint to list all payment statuses."""
     try:
         statuses = payment_service.get_all_payment_statuses()
         return jsonify([s.to_dict() for s in statuses]), 200

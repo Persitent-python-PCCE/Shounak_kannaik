@@ -1,8 +1,3 @@
-"""
-Schedule Controller.
-
-Provides public endpoints for browsing, querying, and filtering event schedules and showtimes.
-"""
 
 from flask import Blueprint, request, jsonify
 from service.schedule_service import ScheduleService
@@ -14,7 +9,6 @@ schedule_service = ScheduleService(ScheduleDAO())
 
 @schedule_controller.route("/", methods=["GET"])
 def get_schedules():
-    """Endpoint to list all event schedules or filter by criteria."""
     filters = request.args.to_dict()
     try:
         if filters:
@@ -30,7 +24,6 @@ def get_schedules():
 
 @schedule_controller.route("/<int:schedule_id>", methods=["GET"])
 def get_schedule_by_id(schedule_id):
-    """Endpoint to get a specific event schedule by ID."""
     try:
         schedule = schedule_service.get_schedule_by_id(schedule_id)
         return jsonify(schedule.to_dict()), 200
@@ -42,7 +35,6 @@ def get_schedule_by_id(schedule_id):
 
 @schedule_controller.route("/event/<int:event_id>", methods=["GET"])
 def get_schedules_for_event(event_id):
-    """Endpoint to get all schedules for a specific event."""
     try:
         schedules = schedule_service.get_schedules_for_event(event_id)
         return jsonify([s.to_dict() for s in schedules]), 200
@@ -52,7 +44,6 @@ def get_schedules_for_event(event_id):
 
 @schedule_controller.route("/venue/<int:venue_id>", methods=["GET"])
 def get_schedules_for_venue(venue_id):
-    """Endpoint to get all schedules for a specific venue."""
     try:
         schedules = schedule_service.get_schedules_for_venue(venue_id)
         return jsonify([s.to_dict() for s in schedules]), 200

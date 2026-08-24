@@ -1,6 +1,3 @@
-"""
-Authentication form definitions for UI layer.
-"""
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
@@ -13,14 +10,12 @@ PHONE_REGEX = r"^\+?[0-9]{7,15}$"
 
 
 class LoginForm(FlaskForm):
-    """User login form."""
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=50)])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Sign In")
 
 
 class RegisterForm(FlaskForm):
-    """User registration form with mandatory ID document upload."""
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField(
         "Email",
@@ -80,7 +75,6 @@ class RegisterForm(FlaskForm):
 
 
 class UserEditForm(FlaskForm):
-    """Admin form for updating user profile details."""
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField(
         "Email",

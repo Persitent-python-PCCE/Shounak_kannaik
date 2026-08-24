@@ -1,9 +1,3 @@
-"""
-EventSchedule Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to EventSchedule entities.
-"""
 
 from models.schedule import EventSchedule
 from models.venue import Venue, Section, Seat
@@ -12,10 +6,6 @@ from config.database import db
 
 
 class ScheduleDAO:
-    """
-    DAO handling database interactions for EventSchedule records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
 
     def _schedule_options(self):
         return [
@@ -76,4 +66,3 @@ class ScheduleDAO:
             query = query.where(EventSchedule.end_datetime <= filters["to_date"])
 
         return db.session.execute(query).scalars().all()
-

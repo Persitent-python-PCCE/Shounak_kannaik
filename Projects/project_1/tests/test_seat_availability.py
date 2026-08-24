@@ -1,12 +1,8 @@
-"""
-Seat locking and availability tests.
-"""
 
 from common.exceptions import SeatUnavailableError, DuplicateBookingError
 
 
 def test_seat_exceptions_instantiation():
-    """Test that custom exceptions can be raised and caught as expected."""
     try:
         raise SeatUnavailableError("Seat 10A is already occupied")
     except SeatUnavailableError as exc:

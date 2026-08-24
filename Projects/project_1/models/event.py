@@ -1,15 +1,9 @@
-"""
-EventType and Event entity model definitions.
-"""
 
 from config.database import db
 from models.genre import event_genres
 
 
 class EventType(db.Model):
-    """
-    EventType model representing categories of events (e.g., Concert, Movie, Play).
-    """
     __tablename__ = "event_types"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -19,7 +13,6 @@ class EventType(db.Model):
     events = db.relationship("Event", back_populates = "event_type")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "type_name": self.type_name,
@@ -28,9 +21,6 @@ class EventType(db.Model):
 
 
 class Event(db.Model):
-    """
-    Event model representing bookable events/shows.
-    """
     __tablename__ = "events"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -47,7 +37,6 @@ class Event(db.Model):
     event_schedules = db.relationship("EventSchedule", back_populates="event", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "name": self.name,

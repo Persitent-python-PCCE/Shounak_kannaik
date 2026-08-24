@@ -1,6 +1,3 @@
-"""
-Document upload form definitions.
-"""
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
@@ -8,7 +5,6 @@ from wtforms import SelectField, SubmitField
 
 
 class DocumentUploadForm(FlaskForm):
-    """KYC / Verification Document upload form."""
     doc_type = SelectField(
         "Document Type",
         choices=[

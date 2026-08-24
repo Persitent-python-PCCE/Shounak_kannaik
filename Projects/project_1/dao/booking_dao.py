@@ -1,9 +1,3 @@
-"""
-Booking Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to Booking entities.
-"""
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import joinedload
 from models.venue import Seat
@@ -14,10 +8,6 @@ from config.database import db
 
 
 class BookingDAO:
-    """
-    DAO handling database interactions for Booking, BookingItem, and BookingStatus records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
 
     def expire_stale_bookings(self):
         """
@@ -137,7 +127,7 @@ class BookingDAO:
 
             if(len(seats)!=len(set(seat_ids))):
                 raise ValueError("One or more seats are invalid")
-            
+
             five_min_check = datetime.now(timezone.utc) - timedelta(minutes=5)
 
             active_conflict = (
@@ -189,7 +179,7 @@ class BookingDAO:
 
             db.session.commit()
             return booking 
-            
+
         except Exception as e:
             db.session.rollback()
             raise e

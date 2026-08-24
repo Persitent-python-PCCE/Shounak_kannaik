@@ -1,8 +1,3 @@
-"""
-Documents Web UI Controller.
-
-Handles listing of user verification documents and uploading additional KYC documents.
-"""
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from service.document_service import DocumentService
@@ -18,7 +13,6 @@ document_service = DocumentService(DocumentDAO())
 @documents_web.route("/documents", methods=["GET"])
 @ui_login_required
 def list_documents():
-    """List documents belonging to the authenticated user and show upload form."""
     user_id = g.current_user.get("user_id")
     documents = document_service.get_documents_for_user(user_id)
     form = DocumentUploadForm()
@@ -28,7 +22,6 @@ def list_documents():
 @documents_web.route("/documents/upload", methods=["POST"])
 @ui_login_required
 def upload_document_ui():
-    """Upload an additional KYC/identity document."""
     user_id = g.current_user.get("user_id")
     form = DocumentUploadForm()
 

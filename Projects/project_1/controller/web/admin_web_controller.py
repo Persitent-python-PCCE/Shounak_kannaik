@@ -1,9 +1,3 @@
-"""
-Admin Web UI Controller.
-
-Provides administrative views and CRUD management for events, venues,
-event schedules, users, and system-wide booking oversight with analytical metrics.
-"""
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from service.admin_service import AdminService
@@ -32,26 +26,16 @@ schedule_service = ScheduleService(ScheduleDAO())
 booking_service = BookingService(BookingDAO())
 
 
-# =========================================================================
-# Admin Dashboard
-# =========================================================================
-
 @admin_web.route("", methods=["GET"])
 @admin_web.route("/", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def dashboard():
-    """Display admin main navigation dashboard with 4 cards."""
     return render_template("admin/dashboard.html")
 
-
-# =========================================================================
-# User Management
-# =========================================================================
 
 @admin_web.route("/users", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def manage_users():
-    """List all registered users with analytical metrics."""
     users = admin_service.get_all_users()
 
     analytics = {
@@ -67,7 +51,6 @@ def manage_users():
 @admin_web.route("/users/<int:user_id>/edit", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def edit_user_form(user_id):
-    """Display form to edit user details."""
     user = admin_service.user_dao.get_by_id(user_id)
     if not user:
         flash("User not found.", "danger")
@@ -92,7 +75,6 @@ def edit_user_form(user_id):
 @admin_web.route("/users/<int:user_id>", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def process_edit_user(user_id):
-    """Update user details."""
     user = admin_service.user_dao.get_by_id(user_id)
     if not user:
         flash("User not found.", "danger")
@@ -132,7 +114,6 @@ def process_edit_user(user_id):
 @admin_web.route("/users/<int:user_id>/delete", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def delete_user_ui(user_id):
-    """Delete a user account and associated resources."""
     try:
         user = admin_service.user_dao.get_by_id(user_id)
         username = user.username if user else f"ID {user_id}"
@@ -143,14 +124,9 @@ def delete_user_ui(user_id):
     return redirect(url_for("admin_web.manage_users"))
 
 
-# =========================================================================
-# Events Management (with inline schedule creation)
-# =========================================================================
-
 @admin_web.route("/events", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def manage_events():
-    """List all events for management with 2 analytical metrics."""
     events = event_service.get_all_events()
     trending_event = event_service.get_trending_event_this_week()
     trending_event_name = trending_event.name if trending_event else "No trending event this week"
@@ -166,10 +142,12 @@ def manage_events():
 @admin_web.route("/events/new", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def create_event_form():
-    """Display event creation form with optional schedule fields."""
     form = EventForm()
     event_types = event_service.get_all_event_types()
     form.event_type_id.choices = [(0, "-- Select Category --")] + [(et.id, et.type_name) for et in event_types]
+
+    genres = event_service.get_all_genres()
+    form.genre_ids.choices = [(g.id, g.genre_name) for g in genres]
 
     venues = venue_service.get_all_venues()
     form.venue_id.choices = [(0, "-- No Schedule (Just Create Event) --")] + [(v.id, f"{v.name} ({v.city})") for v in venues]
@@ -186,10 +164,12 @@ def create_event_form():
 @admin_web.route("/events", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def process_create_event():
-    """Create a new event and optional schedule."""
     form = EventForm()
     event_types = event_service.get_all_event_types()
     form.event_type_id.choices = [(0, "-- Select Category --")] + [(et.id, et.type_name) for et in event_types]
+
+    genres = event_service.get_all_genres()
+    form.genre_ids.choices = [(g.id, g.genre_name) for g in genres]
 
     venues = venue_service.get_all_venues()
     form.venue_id.choices = [(0, "-- No Schedule (Just Create Event) --")] + [(v.id, f"{v.name} ({v.city})") for v in venues]
@@ -225,7 +205,9 @@ def process_create_event():
         }
         event = event_service.create_event(event_data)
 
-        # Check if schedule details were also provided
+        if form.genre_ids.data:
+            event_service.set_genres_for_event(event.id, form.genre_ids.data)
+
         if form.venue_id.data and form.venue_id.data > 0 and form.start_datetime.data and form.end_datetime.data:
             schedule_data = {
                 "event_id": event.id,
@@ -255,7 +237,6 @@ def process_create_event():
 @admin_web.route("/events/<int:event_id>/edit", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def edit_event_form(event_id):
-    """Display event edit form prefilled with current event details."""
     try:
         event = event_service.get_event_by_id(event_id)
     except ValueError as e:
@@ -264,14 +245,18 @@ def edit_event_form(event_id):
 
     event_types = event_service.get_all_event_types()
     venues = venue_service.get_all_venues()
+    genres = event_service.get_all_genres()
+    current_genre_ids = [g.id for g in event_service.get_genres_for_event(event_id)]
 
     form = EventForm(
         name=event.name,
         about=event.about,
         event_type_id=event.event_type_id or 0,
-        age_rating=event.age_rating
+        age_rating=event.age_rating,
+        genre_ids=current_genre_ids
     )
     form.event_type_id.choices = [(0, "-- Select Category --")] + [(et.id, et.type_name) for et in event_types]
+    form.genre_ids.choices = [(g.id, g.genre_name) for g in genres]
     form.venue_id.choices = [(0, "-- None --")] + [(v.id, f"{v.name} ({v.city})") for v in venues]
 
     return render_template(
@@ -286,10 +271,11 @@ def edit_event_form(event_id):
 @admin_web.route("/events/<int:event_id>", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def process_edit_event(event_id):
-    """Update event details."""
     form = EventForm()
     event_types = event_service.get_all_event_types()
     form.event_type_id.choices = [(0, "-- Select Category --")] + [(et.id, et.type_name) for et in event_types]
+    genres = event_service.get_all_genres()
+    form.genre_ids.choices = [(g.id, g.genre_name) for g in genres]
     venues = venue_service.get_all_venues()
     form.venue_id.choices = [(0, "-- None --")] + [(v.id, f"{v.name} ({v.city})") for v in venues]
 
@@ -324,6 +310,7 @@ def process_edit_event(event_id):
             event_data["poster_image_path"] = poster_path
 
         event_service.update_event(event_data)
+        event_service.set_genres_for_event(event_id, form.genre_ids.data or [])
         flash("Event updated successfully!", "success")
         return redirect(url_for("admin_web.manage_events"))
 
@@ -341,7 +328,6 @@ def process_edit_event(event_id):
 @admin_web.route("/events/<int:event_id>/delete", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def delete_event_ui(event_id):
-    """Delete an event."""
     try:
         event_service.delete_event(event_id)
         flash("Event deleted successfully.", "info")
@@ -350,14 +336,9 @@ def delete_event_ui(event_id):
     return redirect(url_for("admin_web.manage_events"))
 
 
-# =========================================================================
-# Venues Management (with dynamic sections and auto seat generation)
-# =========================================================================
-
 @admin_web.route("/venues", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def manage_venues():
-    """List all venues with section details."""
     venues = venue_service.get_all_venues()
     return render_template("admin/venue_list.html", venues=venues)
 
@@ -365,7 +346,6 @@ def manage_venues():
 @admin_web.route("/venues/new", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def create_venue_form():
-    """Display venue creation form."""
     form = VenueForm()
     return render_template(
         "admin/venue_form.html",
@@ -378,7 +358,6 @@ def create_venue_form():
 @admin_web.route("/venues", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def process_create_venue():
-    """Create a new venue and automatically generate sections and seats."""
     form = VenueForm()
     if not form.validate_on_submit():
         return render_template(
@@ -398,7 +377,7 @@ def process_create_venue():
             "capacity": int(form.capacity.data) if form.capacity.data else 0
         }
 
-        # Parse dynamically submitted section arrays
+
         sec_names = request.form.getlist("section_name[]")
         sec_prices = request.form.getlist("section_price[]")
         row_counts = request.form.getlist("row_count[]")
@@ -437,7 +416,6 @@ def process_create_venue():
 @admin_web.route("/venues/<int:venue_id>/edit", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def edit_venue_form(venue_id):
-    """Display venue edit form."""
     venue = venue_service.get_by_id(venue_id)
     if not venue:
         flash("Venue not found.", "danger")
@@ -462,7 +440,6 @@ def edit_venue_form(venue_id):
 @admin_web.route("/venues/<int:venue_id>", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def process_edit_venue(venue_id):
-    """Update venue details."""
     form = VenueForm()
     if not form.validate_on_submit():
         return render_template(
@@ -498,7 +475,6 @@ def process_edit_venue(venue_id):
 @admin_web.route("/venues/<int:venue_id>/delete", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def delete_venue_ui(venue_id):
-    """Delete a venue."""
     try:
         venue_service.delete_venue(venue_id)
         flash("Venue deleted successfully.", "info")
@@ -507,14 +483,9 @@ def delete_venue_ui(venue_id):
     return redirect(url_for("admin_web.manage_venues"))
 
 
-# =========================================================================
-# Schedules Management
-# =========================================================================
-
 @admin_web.route("/schedules/new", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def create_schedule_form():
-    """Display schedule creation form."""
     form = ScheduleForm()
     events = event_service.get_all_events()
     venues = venue_service.get_all_venues()
@@ -526,7 +497,6 @@ def create_schedule_form():
 @admin_web.route("/schedules", methods=["POST"])
 @ui_role_required(Role.ADMIN)
 def create_schedule_ui():
-    """Create a new event schedule."""
     form = ScheduleForm()
     events = event_service.get_all_events()
     venues = venue_service.get_all_venues()
@@ -552,14 +522,9 @@ def create_schedule_ui():
         return render_template("admin/schedule_form.html", form=form)
 
 
-# =========================================================================
-# Bookings Oversight
-# =========================================================================
-
 @admin_web.route("/bookings", methods=["GET"])
 @ui_role_required(Role.ADMIN)
 def manage_bookings():
-    """View all bookings system-wide with analytical metrics."""
     bookings = booking_service.get_all_bookings()
 
     total_revenue = sum(
@@ -582,4 +547,3 @@ def manage_bookings():
     }
 
     return render_template("admin/manage_bookings.html", bookings=bookings, analytics=analytics)
-

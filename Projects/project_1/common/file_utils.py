@@ -19,16 +19,16 @@ def validate_file(file_storage, allowed_extensions: set = None, max_size_bytes: 
             raise ValueError("No file uploaded or file is empty.")
         return False
 
-    # Validate extension
+
     allowed = allowed_extensions if allowed_extensions is not None else ALLOWED_EXTENSIONS
     if not allowed_file(file_storage.filename, allowed):
         allowed_str = ", ".join(sorted(allowed))
         raise ValueError(f"File extension is not allowed. Allowed extensions: {allowed_str}")
 
-    # Validate file size via seek/tell
+
     file_storage.seek(0, os.SEEK_END)
     size = file_storage.tell()
-    file_storage.seek(0)  # Rewind to start for subsequent reads/saves
+    file_storage.seek(0)                                              
 
     if size == 0:
         raise ValueError("Uploaded file is empty.")
@@ -57,19 +57,16 @@ def save_uploaded_file(file_storage, target_folder: str, prefix: str = None) -> 
     else:
         saved_filename = f"{unique_id}_{filename}"
 
-    # Ensure target directory exists
+
     os.makedirs(target_folder, exist_ok=True)
 
     destination_path = os.path.join(target_folder, saved_filename)
     file_storage.seek(0)
     file_storage.save(destination_path)
 
-    # Return normalized, forward-slash relative path
+
     return destination_path.replace("\\", "/")
 
 
 def save_upload(file_storage, target_folder: str):
-    """
-    Backward-compatible wrapper for save_uploaded_file.
-    """
     return save_uploaded_file(file_storage, target_folder)

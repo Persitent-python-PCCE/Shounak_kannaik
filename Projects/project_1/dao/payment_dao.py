@@ -1,19 +1,9 @@
-"""
-Payment Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to Payment entities.
-"""
 
 from models.payment import PaymentMode, PaymentStatus
 from config.database import db
 
 
 class PaymentDAO:
-    """
-    DAO handling database interactions for PaymentMode and PaymentStatus records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
 
     def get_all_payment_modes(self):
         """Fetch all payment modes."""
