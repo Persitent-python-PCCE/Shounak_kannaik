@@ -4,7 +4,7 @@ This document provides a comprehensive explanation of the architectural decision
 
 ---
 
-## 🏛️ High-Level System Architecture
+## High-Level System Architecture
 
 The application implements a strict **4-Layer Architecture**:
 
@@ -87,7 +87,7 @@ Flask routes are namespaced by **Blueprint `url_prefix`** configurations inside 
 ### The Problem with Direct Instantiation
 If a Service instantiates its DAO internally:
 ```python
-# ❌ Anti-pattern: Hardcoded dependency
+# Anti-pattern: Hardcoded dependency
 class BookingService:
     def __init__(self):
         self.booking_dao = BookingDAO()  # tightly coupled to real database!
@@ -96,7 +96,7 @@ Every time `BookingService` is instantiated, it is permanently tied to `BookingD
 
 ### The Solution: Constructor Dependency Injection
 ```python
-# ✅ Clean Architecture: Dependency Injection
+# Clean Architecture: Dependency Injection
 class BookingService:
     def __init__(self, booking_dao):
         self.booking_dao = booking_dao
