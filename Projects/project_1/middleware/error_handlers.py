@@ -6,7 +6,6 @@ from common.exceptions import (
 
 
 def wants_json_response():
-    """Determine whether the client expects JSON or an HTML web page."""
     if request.path.startswith("/ui"):
         return False
     api_prefixes = ("/auth", "/events", "/venue", "/bookings", "/admin", "/payments", "/documents", "/schedules", "/api")
@@ -125,4 +124,3 @@ def register_error_handlers(app):
             "message": "an unexpected error occured",
             "status": 500
         }), 500
-        

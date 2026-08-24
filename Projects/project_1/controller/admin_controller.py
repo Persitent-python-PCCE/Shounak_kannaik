@@ -1,6 +1,3 @@
-"""
-Admin Controller.
-"""
 
 from flask import Blueprint, request, jsonify
 from service.admin_service import AdminService
@@ -25,15 +22,10 @@ booking_service = BookingService(BookingDAO())
 schedule_service = ScheduleService(ScheduleDAO())
 
 
-# ==========================================
-# User Management Routes (Admin Only)
-# ==========================================
-
 @admin_controller.route("/users", methods=["GET"])
 @authenticate
 @authorize(Role.ADMIN)
 def get_users():
-    """Endpoint to list all users."""
     try:
         users = admin_service.get_all_users()
         return jsonify([user.to_dict() for user in users]), 200
@@ -73,10 +65,6 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({"error": "internal error occured"}), 500
 
-
-# ==========================================
-# Venue Management Routes (Admin Only)
-# ==========================================
 
 @admin_controller.route("/venues", methods=["POST"])
 @authenticate
@@ -121,15 +109,10 @@ def delete_venue(venue_id):
         return jsonify({"error": "internal error occured"}), 500
 
 
-# ==========================================
-# Event Management Routes (Admin Only)
-# ==========================================
-
 @admin_controller.route("/events", methods=["POST"])
 @authenticate
 @authorize(Role.ADMIN)
 def create_event():
-    """Endpoint for admins to create an event with optional poster upload."""
     data = request.form.to_dict() if request.form else (request.get_json() or {})
     poster_file = request.files.get("poster_image") or request.files.get("poster") or request.files.get("file")
     try:
@@ -161,7 +144,6 @@ def create_event():
 @authenticate
 @authorize(Role.ADMIN)
 def update_event(event_id):
-    """Endpoint for admins to update an event with optional poster upload."""
     data = request.form.to_dict() if request.form else (request.get_json() or {})
     data["event_id"] = event_id
     poster_file = request.files.get("poster_image") or request.files.get("poster") or request.files.get("file")
@@ -194,7 +176,6 @@ def update_event(event_id):
 @authenticate
 @authorize(Role.ADMIN)
 def delete_event(event_id):
-    """Endpoint for admins to delete an event."""
     try:
         event_service.delete_event(event_id)
         return jsonify({
@@ -210,7 +191,6 @@ def delete_event(event_id):
 @authenticate
 @authorize(Role.ADMIN)
 def add_genre_to_event(event_id, genre_id):
-    """Endpoint for admins to link a genre to an event."""
     try:
         event_service.add_genre_to_event(event_id, genre_id)
         return jsonify({
@@ -222,15 +202,10 @@ def add_genre_to_event(event_id, genre_id):
         return jsonify({"error": "internal error occured"}), 500
 
 
-# ==========================================
-# Schedule Management Routes (Admin Only)
-# ==========================================
-
 @admin_controller.route("/schedules", methods=["POST"])
 @authenticate
 @authorize(Role.ADMIN)
 def create_schedule():
-    """Endpoint for admins to create an event schedule."""
     data = request.get_json() or {}
     try:
         schedule = schedule_service.create_schedule(data)
@@ -248,7 +223,6 @@ def create_schedule():
 @authenticate
 @authorize(Role.ADMIN)
 def update_schedule(schedule_id):
-    """Endpoint for admins to update an event schedule."""
     data = request.get_json() or {}
     data["schedule_id"] = schedule_id
     try:
@@ -267,7 +241,6 @@ def update_schedule(schedule_id):
 @authenticate
 @authorize(Role.ADMIN)
 def delete_schedule(schedule_id):
-    """Endpoint for admins to delete an event schedule."""
     try:
         schedule_service.delete_schedule(schedule_id)
         return jsonify({
@@ -279,15 +252,10 @@ def delete_schedule(schedule_id):
         return jsonify({"error": "internal error occured"}), 500
 
 
-# ==========================================
-# Booking Oversight Routes (Admin Only)
-# ==========================================
-
 @admin_controller.route("/bookings", methods=["GET"])
 @authenticate
 @authorize(Role.ADMIN)
 def get_all_bookings():
-    """Endpoint for admins to list all bookings system-wide."""
     try:
         bookings = booking_service.get_all_bookings()
         return jsonify([b.to_dict() for b in bookings]), 200
@@ -299,7 +267,6 @@ def get_all_bookings():
 @authenticate
 @authorize(Role.ADMIN)
 def get_admin_booking_by_id(booking_id):
-    """Endpoint for admins to view details of any booking."""
     try:
         booking = booking_service.get_booking_by_id(booking_id)
         return jsonify(booking.to_dict()), 200

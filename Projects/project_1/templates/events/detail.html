@@ -104,13 +104,13 @@
                                 <div class="col">
                                     {% if seat.id in booked_seat_ids %}
                                     <div class="p-2 border rounded text-center bg-secondary text-white small opacity-75">
-                                        <div><strong>{{ seat.row }}{{ seat.number }}</strong></div>
+                                        <div><strong>{{ seat.number }}</strong></div>
                                         <small class="d-block text-truncate">Occupied</small>
                                     </div>
                                     {% else %}
                                     <label class="p-2 border rounded text-center d-block bg-white small position-relative" style="cursor: pointer;">
                                         <input type="checkbox" name="seat_ids" value="{{ seat.id }}" class="form-check-input me-1" id="seat_{{ seat.id }}">
-                                        <strong>{{ seat.row }}{{ seat.number }}</strong>
+                                        <strong>{{ seat.number }}</strong>
                                         <small class="d-block text-muted">{{ seat.seat_type or 'Regular' }}</small>
                                     </label>
                                     {% endif %}

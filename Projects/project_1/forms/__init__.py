@@ -1,6 +1,3 @@
-"""
-Flask-WTF Forms package initialization.
-"""
 
 from forms.auth_forms import LoginForm, RegisterForm, UserEditForm
 from forms.event_forms import EventForm

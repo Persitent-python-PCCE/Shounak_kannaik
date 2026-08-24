@@ -1,16 +1,12 @@
-"""
-Application settings and environment configurations.
-"""
 
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+
 load_dotenv()
 
 
 class Config:
-    """Base configuration class."""
     SECRET_KEY = os.environ.get("SECRET_KEY", "sk_UnObMG0tNhe3ugvDow0Wx6PVJ1jlFpkm")
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "sk_8OF38wKlaD1VvhOqJYvZ8FO2ccd7bBwL")
     JWT_EXPIRY_HOURS = int(os.environ.get("JWT_EXPIRY_HOURS") or 24)
@@ -28,22 +24,17 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    """Development environment configuration."""
     DEBUG = True
 
 
 class TestingConfig(Config):
-    """Testing environment configuration."""
     TESTING = True
     DEBUG = False
-    # In-memory SQLite for test isolation
+
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
     CACHE_TYPE = "SimpleCache"
 
 
-
-
 class ProductionConfig(Config):
-    """Production environment configuration."""
     DEBUG = False

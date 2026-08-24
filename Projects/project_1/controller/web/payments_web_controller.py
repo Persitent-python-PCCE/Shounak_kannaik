@@ -1,9 +1,3 @@
-"""
-Payments Web UI Controller.
-
-Handles payment initiation, dynamic QR code generation with python-qrcode,
-and payment completion verification.
-"""
 
 import io
 import base64
@@ -22,7 +16,6 @@ payment_service = PaymentService(PaymentDAO())
 
 
 def generate_qr_base64(data_string: str) -> str:
-    """Generate an in-memory QR code image encoded as a base64 string."""
     qr = qrcode.QRCode(version=1, box_size=8, border=2)
     qr.add_data(data_string)
     qr.make(fit=True)
@@ -35,9 +28,6 @@ def generate_qr_base64(data_string: str) -> str:
 @payments_web.route("/payments", methods=["POST"])
 @ui_login_required
 def process_payment_ui():
-    """
-    Process payment mode selection and display QR code for payment completion.
-    """
     booking_id = request.form.get("booking_id")
     payment_mode_id = request.form.get("payment_mode_id")
 
@@ -56,18 +46,18 @@ def process_payment_ui():
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
 
-    # Expiry / Status guard
+
     is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
     is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
     if is_cancelled or is_expired:
         flash("This booking reservation has expired (5-minute payment window elapsed). Please select your seats again.", "warning")
         return redirect(url_for("bookings_web.booking_history"))
 
-    # Update payment mode on the booking
+
     booking.payment_mode_id = int(payment_mode_id)
     BookingDAO().update_booking(booking)
 
-    # Generate QR data pointing to the scan/completion endpoint
+
     payment_target_url = request.host_url.rstrip("/") + url_for(
         "payments_web.complete_payment_scan",
         booking_id=booking.id
@@ -84,7 +74,6 @@ def process_payment_ui():
 @payments_web.route("/payments/<int:booking_id>/qr", methods=["GET"])
 @ui_login_required
 def show_qr_page(booking_id):
-    """Display the QR code payment screen for an existing pending booking."""
     try:
         booking = booking_service.get_booking_by_id(booking_id)
     except ValueError as e:
@@ -96,7 +85,7 @@ def show_qr_page(booking_id):
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
 
-    # Expiry / Status guard
+
     is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
     is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
     if is_cancelled or is_expired:
@@ -118,10 +107,6 @@ def show_qr_page(booking_id):
 
 @payments_web.route("/payments/<int:booking_id>/complete", methods=["GET", "POST"])
 def complete_payment_scan(booking_id):
-    """
-    Endpoint triggered upon QR scan (or user confirmation) to complete payment
-    and confirm the booking transaction in the database.
-    """
     try:
         booking = booking_service.confirm_payment(booking_id=booking_id)
         flash(f"Payment received successfully for Booking #{booking.booking_reference or booking.id}! Status is now Confirmed.", "success")

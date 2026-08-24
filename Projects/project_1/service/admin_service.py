@@ -1,9 +1,3 @@
-"""
-Admin Service.
-
-Handles administrative workflows, reporting, user management, and system configuration.
-Receives DAOs via constructor injection to facilitate unit testing with mock DAOs.
-"""
 
 import re
 from werkzeug.security import generate_password_hash
@@ -17,7 +11,7 @@ class AdminService:
 
     def get_all_users(self):
         return self.user_dao.get_all_users()
-        
+
     def update_user(self, data):
         user_id = data.get("user_id")
         if not user_id:
@@ -45,7 +39,7 @@ class AdminService:
             user.is_active = bool(data["is_active"])
         if "role" in data and data["role"]:
             user.role = data["role"]
-        
+
         return self.user_dao.update_user(user)
 
     def delete_user(self, user_id):
@@ -53,5 +47,3 @@ class AdminService:
         if not user:
             raise ValueError("User not found.")
         return self.user_dao.delete_user(user)
-    
-    

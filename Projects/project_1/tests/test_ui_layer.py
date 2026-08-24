@@ -1,6 +1,3 @@
-"""
-Unit and Integration tests for the Parallel UI Layer (/ui).
-"""
 
 import io
 from datetime import datetime, timedelta, timezone
@@ -16,19 +13,18 @@ from config.database import db
 
 @pytest.fixture
 def ui_test_data(app):
-    """Seed test entities required for UI testing and return their IDs."""
     with app.app_context():
-        # Event type
+
         et = EventType(type_name="Concert", description="Live music concert")
         db.session.add(et)
         db.session.commit()
 
-        # Event
+
         ev = Event(name="Rock Fest 2026", about="Annual rock show", event_type_id=et.id, age_rating="UA 16+")
         db.session.add(ev)
         db.session.commit()
 
-        # Venue, Section, Seat
+
         venue = Venue(name="City Arena", address="123 Park Street", city="Mumbai", state="Maharashtra", country="India", capacity=200)
         db.session.add(venue)
         db.session.commit()
@@ -42,7 +38,7 @@ def ui_test_data(app):
         db.session.add_all([seat1, seat2])
         db.session.commit()
 
-        # Schedule
+
         start_time = datetime.now(timezone.utc) + timedelta(days=5)
         end_time = start_time + timedelta(hours=3)
         schedule = EventSchedule(
@@ -54,12 +50,12 @@ def ui_test_data(app):
         )
         db.session.add(schedule)
 
-        # Payment Modes
+
         pm1 = PaymentMode(mode_name="Credit Card", description="Visa/Mastercard")
         pm2 = PaymentMode(mode_name="UPI", description="Instant QR / VPA")
         db.session.add_all([pm1, pm2])
 
-        # Booking / Payment Statuses
+
         bs_res = BookingStatus(status_name="reserved")
         bs_conf = BookingStatus(status_name="confirmed")
         bs_canc = BookingStatus(status_name="cancelled")
@@ -73,6 +69,7 @@ def ui_test_data(app):
         return {
             "event_id": ev.id,
             "event_name": ev.name,
+            "event_type_id": et.id,
             "venue_id": venue.id,
             "section_id": section.id,
             "seat1_id": seat1.id,
@@ -83,7 +80,6 @@ def ui_test_data(app):
 
 
 def test_ui_public_events(client, ui_test_data):
-    """Test public event browsing at /ui/events and /ui/events/<id>."""
     resp = client.get("/ui/events")
     assert resp.status_code == 200
     assert b"Rock Fest 2026" in resp.data
@@ -96,13 +92,12 @@ def test_ui_public_events(client, ui_test_data):
 
 
 def test_ui_register_and_login_flow(client):
-    """Test user registration with file upload and cookie-based login."""
-    # 1. GET Registration page
+
     resp = client.get("/ui/register")
     assert resp.status_code == 200
     assert b"Customer Registration" in resp.data
 
-    # 2. POST Registration with ID document
+
     dummy_pdf = (io.BytesIO(b"%PDF-1.4 dummy file content"), "id_card.pdf")
     resp_reg = client.post(
         "/ui/register",
@@ -121,7 +116,7 @@ def test_ui_register_and_login_flow(client):
     assert resp_reg.status_code == 200
     assert b"Registration successful" in resp_reg.data
 
-    # 3. POST Login
+
     resp_login = client.post(
         "/ui/login",
         data={
@@ -135,7 +130,6 @@ def test_ui_register_and_login_flow(client):
 
 
 def test_ui_booking_and_payment_qr_flow(client, app, customer_user, auth_service, ui_test_data):
-    """Test creating booking, viewing QR code, completing payment, and checking history."""
     token = auth_service.generate_token(customer_user)
     client.set_cookie("access_token_cookie", token)
 
@@ -143,7 +137,7 @@ def test_ui_booking_and_payment_qr_flow(client, app, customer_user, auth_service
     seat_id = ui_test_data["seat1_id"]
     pm_id = ui_test_data["payment_mode_id"]
 
-    # 1. Create booking
+
     resp_book = client.post(
         "/ui/bookings",
         data={
@@ -156,7 +150,7 @@ def test_ui_booking_and_payment_qr_flow(client, app, customer_user, auth_service
     assert resp_book.status_code == 200
     assert b"Select Payment Method" in resp_book.data or b"Pay" in resp_book.data
 
-    # 2. Get the created booking
+
     with app.app_context():
         from models.booking import Booking
         booking = Booking.query.filter_by(user_id=customer_user.id).first()
@@ -174,7 +168,7 @@ def test_ui_booking_and_payment_qr_flow(client, app, customer_user, auth_service
     assert b"Scan QR to Complete Payment" in resp_pay.data
     assert b"data:image/png;base64," in resp_pay.data
 
-    # 3. Simulate QR scan / complete payment
+
     resp_complete = client.post(
         f"/ui/payments/{booking_id}/complete",
         follow_redirects=True
@@ -183,28 +177,27 @@ def test_ui_booking_and_payment_qr_flow(client, app, customer_user, auth_service
     assert b"Confirmed" in resp_complete.data
     assert b"Completed" in resp_complete.data
 
-    # 4. View booking history
+
     resp_hist = client.get("/ui/bookings")
     assert resp_hist.status_code == 200
     assert b"Rock Fest 2026" in resp_hist.data
 
 
 def test_ui_admin_access_control_and_crud(client, app, admin_user, customer_user, auth_service, ui_test_data):
-    """Test RBAC protection and admin management for venues and events."""
-    # Customer forbidden from admin
+
     cust_token = auth_service.generate_token(customer_user)
     client.set_cookie("access_token_cookie", cust_token)
     resp_forbidden = client.get("/ui/admin")
     assert resp_forbidden.status_code == 403
 
-    # Admin access allowed
+
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
     resp_admin = client.get("/ui/admin")
     assert resp_admin.status_code == 200
     assert b"Admin Dashboard" in resp_admin.data
 
-    # Admin create venue
+
     resp_create_venue = client.post(
         "/ui/admin/venues",
         data={
@@ -222,10 +215,9 @@ def test_ui_admin_access_control_and_crud(client, app, admin_user, customer_user
 
 
 def test_ui_password_validation_and_confirmation(client):
-    """Test password complexity enforcement and confirm password matching."""
     dummy_pdf = (io.BytesIO(b"%PDF-1.4 dummy"), "id_doc.pdf")
 
-    # 1. Weak password (missing uppercase and special char)
+
     resp_weak = client.post(
         "/ui/register",
         data={
@@ -241,7 +233,7 @@ def test_ui_password_validation_and_confirmation(client):
     assert resp_weak.status_code == 200
     assert b"Password must contain at least 1 capital letter" in resp_weak.data
 
-    # 2. Mismatched confirm password
+
     dummy_pdf2 = (io.BytesIO(b"%PDF-1.4 dummy"), "id_doc.pdf")
     resp_mismatch = client.post(
         "/ui/register",
@@ -260,8 +252,7 @@ def test_ui_password_validation_and_confirmation(client):
 
 
 def test_ui_phone_number_validation(client, admin_user, customer_user, auth_service):
-    """Test non-numeric phone number rejection in registration and admin edit forms."""
-    # 1. Registration form with non-numeric phone
+
     dummy_pdf = (io.BytesIO(b"%PDF-1.4 dummy"), "id_doc.pdf")
     resp_reg = client.post(
         "/ui/register",
@@ -279,7 +270,7 @@ def test_ui_phone_number_validation(client, admin_user, customer_user, auth_serv
     assert resp_reg.status_code == 200
     assert b"Please enter a valid numeric phone number" in resp_reg.data
 
-    # 2. Admin edit form with non-numeric phone
+
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
 
@@ -298,8 +289,7 @@ def test_ui_phone_number_validation(client, admin_user, customer_user, auth_serv
 
 
 def test_ui_admin_login_redirect_and_dashboard_cards(client, admin_user, customer_user):
-    """Test admin redirect to dashboard vs customer redirect, and 4 dashboard cards."""
-    # 1. Admin login redirects to admin dashboard
+
     resp_admin_login = client.post(
         "/ui/login",
         data={"username": admin_user.username, "password": "AdminPass123!"},
@@ -308,7 +298,7 @@ def test_ui_admin_login_redirect_and_dashboard_cards(client, admin_user, custome
     assert resp_admin_login.status_code == 302
     assert "/ui/admin" in resp_admin_login.headers.get("Location", "")
 
-    # 2. Customer login redirects to events page
+
     resp_cust_login = client.post(
         "/ui/login",
         data={"username": customer_user.username, "password": "Password123!"},
@@ -319,11 +309,10 @@ def test_ui_admin_login_redirect_and_dashboard_cards(client, admin_user, custome
 
 
 def test_ui_admin_analytics_and_management_pages(client, admin_user, auth_service):
-    """Test all 4 admin management pages render analytics metrics correctly."""
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
 
-    # 1. Dashboard contains 4 cards
+
     resp_dash = client.get("/ui/admin")
     assert resp_dash.status_code == 200
     assert b"User Management" in resp_dash.data
@@ -331,7 +320,7 @@ def test_ui_admin_analytics_and_management_pages(client, admin_user, auth_servic
     assert b"Venue Management" in resp_dash.data
     assert b"Booking Management" in resp_dash.data
 
-    # 2. User Management page + Analytics + Edit Action Link
+
     resp_users = client.get("/ui/admin/users")
     assert resp_users.status_code == 200
     assert b"User Management" in resp_users.data
@@ -340,7 +329,7 @@ def test_ui_admin_analytics_and_management_pages(client, admin_user, auth_servic
     assert b"Admins" in resp_users.data
     assert b"Edit" in resp_users.data
 
-    # 3. Event Management page + Analytics (only 2 queries: total events, trending event)
+
     resp_events = client.get("/ui/admin/events")
     assert resp_events.status_code == 200
     assert b"Events Management" in resp_events.data
@@ -348,14 +337,14 @@ def test_ui_admin_analytics_and_management_pages(client, admin_user, auth_servic
     assert b"Current Trending Event" in resp_events.data
     assert b"Active Schedules" not in resp_events.data
 
-    # 4. Venue Management page (analytics removed)
+
     resp_venues = client.get("/ui/admin/venues")
     assert resp_venues.status_code == 200
     assert b"Venues Management" in resp_venues.data
     assert b"Total System Capacity" not in resp_venues.data
     assert b"Total Sections" not in resp_venues.data
 
-    # 5. Booking Management page + Analytics
+
     resp_bookings = client.get("/ui/admin/bookings")
     assert resp_bookings.status_code == 200
     assert b"System Bookings Oversight" in resp_bookings.data
@@ -364,18 +353,16 @@ def test_ui_admin_analytics_and_management_pages(client, admin_user, auth_servic
 
 
 def test_ui_admin_edit_user_flow(client, admin_user, customer_user, auth_service, app):
-    """Test admin editing user details, toggling active status, and deleting user."""
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
 
-    # 1. Access edit user form
+
     resp_get = client.get(f"/ui/admin/users/{customer_user.id}/edit")
     assert resp_get.status_code == 200
     assert b"Edit User Details" in resp_get.data
     assert b"Delete User" in resp_get.data
     assert customer_user.username.encode() in resp_get.data
 
-    # 2. Submit user update with active status turned OFF (is_active omitted / unchecked)
     resp_post = client.post(
         f"/ui/admin/users/{customer_user.id}",
         data={
@@ -383,7 +370,6 @@ def test_ui_admin_edit_user_flow(client, admin_user, customer_user, auth_service
             "email": "updated_customer@example.com",
             "phone_no": "+919876543210",
             "role": "customer"
-            # is_active checkbox not sent when unchecked in browser
         },
         follow_redirects=True
     )
@@ -391,7 +377,6 @@ def test_ui_admin_edit_user_flow(client, admin_user, customer_user, auth_service
     assert b"updated successfully" in resp_post.data
     assert b"updated_customer@example.com" in resp_post.data
 
-    # 3. Verify in database that is_active is now False
     with app.app_context():
         from models.user import User
         from config.database import db
@@ -400,7 +385,6 @@ def test_ui_admin_edit_user_flow(client, admin_user, customer_user, auth_service
         assert updated_user.phone_no == "+919876543210"
         assert updated_user.is_active is False
 
-    # 4. Test deleting user
     resp_del = client.post(
         f"/ui/admin/users/{customer_user.id}/delete",
         follow_redirects=True
@@ -414,11 +398,9 @@ def test_ui_admin_edit_user_flow(client, admin_user, customer_user, auth_service
 
 
 def test_ui_venue_dynamic_sections_and_seat_generation(client, admin_user, auth_service, app):
-    """Test venue creation with dynamic sections and backend row (A, B) and seat (A1, A2) generation."""
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
 
-    # POST venue creation with 2 sections (Balcony: 2 rows x 3 seats, Orchestra: 2 rows x 4 seats)
     resp = client.post(
         "/ui/admin/venues",
         data={
@@ -427,7 +409,7 @@ def test_ui_venue_dynamic_sections_and_seat_generation(client, admin_user, auth_
             "city": "Bengaluru",
             "state": "Karnataka",
             "country": "India",
-            "capacity": "",  # Auto-calculated
+            "capacity": "",
             "section_name[]": ["Balcony", "Orchestra"],
             "section_price[]": ["150.00", "250.00"],
             "row_count[]": ["2", "2"],
@@ -444,23 +426,22 @@ def test_ui_venue_dynamic_sections_and_seat_generation(client, admin_user, auth_
         from models.venue import Venue, Section, Seat
         venue = Venue.query.filter_by(name="Grand Symphony Hall").first()
         assert venue is not None
-        assert venue.capacity == 14  # (2*3) + (2*4) = 6 + 8 = 14 seats
+        assert venue.capacity == 14
         assert len(venue.sections) == 2
 
         balcony = Section.query.filter_by(venue_id=venue.id, name="Balcony").first()
         assert balcony is not None
         assert len(balcony.seats) == 6
         seat_numbers = [s.number for s in balcony.seats]
-        assert "A1" in seat_numbers
-        assert "A2" in seat_numbers
-        assert "A3" in seat_numbers
-        assert "B1" in seat_numbers
-        assert "B2" in seat_numbers
-        assert "B3" in seat_numbers
+        assert "BA1" in seat_numbers
+        assert "BA2" in seat_numbers
+        assert "BA3" in seat_numbers
+        assert "BB1" in seat_numbers
+        assert "BB2" in seat_numbers
+        assert "BB3" in seat_numbers
 
 
 def test_ui_event_creation_with_inline_schedule(client, admin_user, auth_service, ui_test_data, app):
-    """Test creating an event with inline venue and schedule creation."""
     admin_token = auth_service.generate_token(admin_user)
     client.set_cookie("access_token_cookie", admin_token)
 
@@ -493,13 +474,10 @@ def test_ui_event_creation_with_inline_schedule(client, admin_user, auth_service
 
 
 def test_ui_navbar_active_highlighting(client, admin_user, customer_user):
-    """Test that the navbar highlights the active navigation menu item with bold text."""
-    # 1. Public browsing -> Browse Events is active and bold
     resp_events = client.get("/ui/events")
     assert resp_events.status_code == 200
     assert b'class="nav-link active fw-bold text-white" href="/ui/events"' in resp_events.data
 
-    # 2. Customer user on My Bookings -> My Bookings is active and bold
     client.post(
         "/ui/login",
         data={"username": customer_user.username, "password": "Password123!"}
@@ -508,7 +486,6 @@ def test_ui_navbar_active_highlighting(client, admin_user, customer_user):
     assert resp_bookings.status_code == 200
     assert b'class="nav-link active fw-bold text-white" href="/ui/bookings"' in resp_bookings.data
 
-    # 3. Admin user on Admin Dashboard -> Admin Dashboard is active and bold
     client.post(
         "/ui/login",
         data={"username": admin_user.username, "password": "AdminPass123!"}
@@ -520,22 +497,119 @@ def test_ui_navbar_active_highlighting(client, admin_user, customer_user):
 
 
 def test_ui_error_pages_html_rendering(client):
-    """Test that UI/browser requests receive rendered HTML error pages (404, 403, 500)."""
-    # 1. UI 404 page renders templates/404.html
     resp_404 = client.get("/ui/non_existent_page")
     assert resp_404.status_code == 404
     assert b"Page Not Found" in resp_404.data
     assert b"404" in resp_404.data
     assert b"Return to Events" in resp_404.data
 
-    # 2. Browser request to non-existent route with text/html Accept header
     resp_browser_404 = client.get("/random_browser_url", headers={"Accept": "text/html,application/xhtml+xml"})
     assert resp_browser_404.status_code == 404
     assert b"Page Not Found" in resp_browser_404.data
 
-    # 3. API route non-existent returns JSON 404
+
     resp_api_404 = client.get("/events/non_existent_api_call", headers={"Accept": "application/json"})
     assert resp_api_404.status_code == 404
     assert resp_api_404.is_json
     assert resp_api_404.get_json()["status"] == 404
 
+
+def test_ui_events_server_side_pagination(client, app, ui_test_data):
+    from dao.event_dao import EventDAO
+    from models.event import Event
+
+    with app.app_context():
+        dao = EventDAO()
+
+        for i in range(1, 13):
+            dao.create_event(Event(
+                name=f"Rock Fest Part {i}",
+                event_type_id=ui_test_data["event_type_id"],
+                age_rating="UA 16+"
+            ))
+
+    resp_default = client.get("/ui/events")
+    assert resp_default.status_code == 200
+    assert b"Browse Events" in resp_default.data
+    assert b"Events per page:" in resp_default.data
+    assert b'id="per_page_select"' in resp_default.data
+    assert b"Showing" in resp_default.data
+    assert b"Next &raquo;" in resp_default.data or b"Next" in resp_default.data
+
+    resp_p1 = client.get("/ui/events?per_page=5&page=1")
+    assert resp_p1.status_code == 200
+    assert b"Rock Fest 2026" in resp_p1.data
+    assert b"Rock Fest Part 1" in resp_p1.data
+    assert b"Rock Fest Part 4" in resp_p1.data
+    assert b"Showing <span class=\"fw-bold\">1</span> to <span class=\"fw-bold\">5</span>" in resp_p1.data
+
+    resp_p2 = client.get("/ui/events?per_page=5&page=2")
+    assert resp_p2.status_code == 200
+    assert b"Rock Fest Part 5" in resp_p2.data
+    assert b"Showing <span class=\"fw-bold\">6</span> to <span class=\"fw-bold\">10</span>" in resp_p2.data
+    assert b"&laquo; Prev" in resp_p2.data
+
+    resp_filtered = client.get("/ui/events?name=Rock+Fest+Part&per_page=5&page=1")
+    assert resp_filtered.status_code == 200
+    assert b"Rock Fest Part" in resp_filtered.data
+
+
+def test_admin_create_and_edit_event_with_genres(client, app, admin_user, ui_test_data):
+    from models.genre import Genre
+    from models.event import Event
+    from config.database import db
+
+    with app.app_context():
+        g1 = Genre(genre_name="Electronic", description="Electronic music")
+        g2 = Genre(genre_name="Indie Pop", description="Indie pop music")
+        db.session.add_all([g1, g2])
+        db.session.commit()
+        g1_id, g2_id = g1.id, g2.id
+
+    client.post("/ui/login", data={"username": admin_user.username, "password": "AdminPass123!"})
+
+    resp_get = client.get("/ui/admin/events/new")
+    assert resp_get.status_code == 200
+    assert b"Electronic" in resp_get.data
+    assert b"Indie Pop" in resp_get.data
+
+    resp_create = client.post(
+        "/ui/admin/events",
+        data={
+            "name": "Coldplay Bangalore 2026",
+            "about": "Coldplay live in Bangalore",
+            "event_type_id": str(ui_test_data["event_type_id"]),
+            "age_rating": "All Ages",
+            "genre_ids": [str(g1_id), str(g2_id)],
+            "venue_id": "0"
+        },
+        follow_redirects=True
+    )
+    assert resp_create.status_code == 200
+
+    with app.app_context():
+        ev = db.session.execute(db.select(Event).where(Event.name == "Coldplay Bangalore 2026")).scalar_one()
+        assert len(ev.genres) == 2
+        genre_names = {g.genre_name for g in ev.genres}
+        assert "Electronic" in genre_names
+        assert "Indie Pop" in genre_names
+        ev_id = ev.id
+
+    resp_edit = client.post(
+        f"/ui/admin/events/{ev_id}",
+        data={
+            "name": "Coldplay Bangalore 2026 Updated",
+            "about": "Coldplay live updated",
+            "event_type_id": str(ui_test_data["event_type_id"]),
+            "age_rating": "PG",
+            "genre_ids": [str(g1_id)],
+        },
+        follow_redirects=True
+    )
+    assert resp_edit.status_code == 200
+
+    with app.app_context():
+        ev_updated = db.session.get(Event, ev_id)
+        assert ev_updated.name == "Coldplay Bangalore 2026 Updated"
+        assert len(ev_updated.genres) == 1
+        assert ev_updated.genres[0].genre_name == "Electronic"

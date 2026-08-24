@@ -1,6 +1,3 @@
-"""
-Pytest configuration and fixture definitions.
-"""
 
 import pytest
 from app import create_app
@@ -17,7 +14,6 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
-    """Create and configure a new app instance for each test."""
     app_instance = create_app(TestingConfig)
 
     with app_instance.app_context():
@@ -29,7 +25,6 @@ def app():
 
 @pytest.fixture
 def client(app):
-    """A test client for making HTTP requests."""
     return app.test_client()
 
 @pytest.fixture
@@ -38,7 +33,6 @@ def auth_service():
 
 @pytest.fixture
 def customer_user(app):
-    """Create a test customer user."""
     user = User(
         username="john_customer",
         email="customer@example.com",
@@ -49,10 +43,9 @@ def customer_user(app):
     db.session.add(user)
     db.session.commit()
     return user
-    
+
 @pytest.fixture
 def admin_user(app):
-    """Create a test admin user."""
     user = User(
         username="sarah_admin",
         email="admin@example.com",
@@ -66,17 +59,14 @@ def admin_user(app):
 
 @pytest.fixture
 def customer_headers(app, auth_service, customer_user):
-    """Authorization headers for a customer."""
     token = auth_service.generate_token(customer_user)
     return {"Authorization": f"Bearer {token}"}
 
 @pytest.fixture
 def admin_headers(app, auth_service, admin_user):
-    """Authorization headers for an admin."""
     token = auth_service.generate_token(admin_user)
     return {"Authorization": f"Bearer {token}"}
 
 @pytest.fixture
 def runner(app):
-    """A test CLI runner for testing Flask CLI commands."""
     return app.test_cli_runner()

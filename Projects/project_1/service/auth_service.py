@@ -1,9 +1,3 @@
-"""
-Authentication and User Service.
-
-Handles business logic for user registration, authentication, and session management.
-Receives DAOs via constructor injection to facilitate unit testing with mock DAOs.
-"""
 import jwt
 import re
 from datetime import datetime, timezone, timedelta
@@ -16,18 +10,10 @@ PHONE_REGEX = r"^\+?[0-9]{7,15}$"
 
 
 class AuthService:
-    """
-    Service layer handling authentication logic.
-    """
 
     def __init__(self, user_dao):
-        """
-        Constructor injection of the UserDAO dependency.
-
-        :param user_dao: UserDAO instance (or fake/mock DAO in tests)
-        """
         self.user_dao = user_dao
-    
+
     def generate_token(self, user):
         secret_key = current_app.config.get("JWT_SECRET_KEY")
         expiry_hours = current_app.config.get("JWT_EXPIRY_HOURS")
@@ -40,7 +26,7 @@ class AuthService:
         }
         token = jwt.encode(payload, secret_key, algorithm="HS256")
         return token
-        
+
 
     def verify_token(self, token: str):
         try:
@@ -86,5 +72,3 @@ class AuthService:
         if not user.is_active:
             raise AuthenticationError("User is inactive. Please contact support.")
         return user
-
-    

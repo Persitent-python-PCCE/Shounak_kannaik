@@ -1,16 +1,9 @@
-"""
-User entity model definition.
-"""
 
 from flask_login import UserMixin
 from config.database import db
 
 
 class User(UserMixin, db.Model):
-    """
-    User model representing registered users in the system.
-    Extends UserMixin for Flask-Login integration.
-    """
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -24,12 +17,11 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default="customer")
     last_active = db.Column(db.DateTime(timezone=True))
 
-    # Relationships
+
     bookings = db.relationship("Booking", back_populates="user", cascade="all, delete-orphan")
     documents = db.relationship("UserDocument", back_populates="user", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "username": self.username,

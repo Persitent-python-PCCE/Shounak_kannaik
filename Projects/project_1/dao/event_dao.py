@@ -1,9 +1,3 @@
-"""
-Event Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to Event entities.
-"""
 
 from models.event import Event, EventType
 from models.genre import Genre, event_genres
@@ -11,17 +5,15 @@ from config.database import db
 
 
 class EventDAO:
-    """
-    DAO handling database interactions for Event, EventType, Genre, and EventGenre junction records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
 
-    def get_all_events(self):
+    def get_all_events(self, page=None, per_page=None):
         """Fetch all events from the database with eager loaded relationships."""
         stmt = db.select(Event).options(
             db.joinedload(Event.event_type),
             db.selectinload(Event.genres)
-        )
+        ).order_by(Event.id)
+        if page is not None and per_page is not None:
+            return db.paginate(stmt, page=page, per_page=per_page, error_out=False)
         return db.session.execute(stmt).scalars().all()
 
     def get_by_id(self, event_id):
@@ -33,7 +25,7 @@ class EventDAO:
         return db.session.execute(stmt).scalar_one_or_none()
 
 
-    def filter_events(self, filters: dict):
+    def filter_events(self, filters: dict, page=None, per_page=None):
         """Filter events by name, event_type_id, genre_id, or age_rating with eager loaded relationships."""
         query = db.select(Event).options(
             db.joinedload(Event.event_type),
@@ -49,6 +41,9 @@ class EventDAO:
             ).where(event_genres.c.genre_id == filters["genre_id"])
         if filters.get("age_rating"):
             query = query.where(Event.age_rating == filters["age_rating"])
+        query = query.order_by(Event.id)
+        if page is not None and per_page is not None:
+            return db.paginate(query, page=page, per_page=per_page, error_out=False)
         return db.session.execute(query).scalars().all()
 
 
@@ -89,6 +84,18 @@ class EventDAO:
             event.genres.append(genre)
             db.session.commit()
 
+    def set_genres_for_event(self, event_id, genre_ids: list):
+        """Set or replace all genres associated with an event."""
+        event = db.session.get(Event, event_id)
+        if event:
+            if genre_ids:
+                stmt = db.select(Genre).where(Genre.id.in_(genre_ids))
+                genres = db.session.execute(stmt).scalars().all()
+                event.genres = list(genres)
+            else:
+                event.genres = []
+            db.session.commit()
+
     def get_genres_for_event(self, event_id):
         """Fetch all genres associated with a specific event."""
         stmt = (
@@ -119,4 +126,3 @@ class EventDAO:
         if row:
             return self.get_by_id(row[0])
         return None
-

@@ -1,8 +1,3 @@
-"""
-Bookings Web UI Controller.
-
-Handles ticket reservation submission, booking history, booking details, and cancellations.
-"""
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from service.booking_service import BookingService
@@ -20,14 +15,13 @@ payment_service = PaymentService(PaymentDAO())
 @bookings_web.route("/bookings", methods=["POST"])
 @ui_login_required
 def create_booking_ui():
-    """Process seat reservation form submission."""
     user_id = g.current_user.get("user_id")
     schedule_id = request.form.get("schedule_id")
     raw_seat_ids = request.form.getlist("seat_ids")
     payment_mode_id = request.form.get("payment_mode_id")
 
     if not raw_seat_ids and request.form.get("seat_ids"):
-        # Support comma-separated hidden field if used
+
         raw_seat_ids = [s.strip() for s in request.form.get("seat_ids").split(",") if s.strip()]
 
     if not schedule_id or not raw_seat_ids:
@@ -59,7 +53,6 @@ def create_booking_ui():
 @bookings_web.route("/bookings", methods=["GET"])
 @ui_login_required
 def booking_history():
-    """Display authenticated user's booking history."""
     user_id = g.current_user.get("user_id")
     bookings = booking_service.get_bookings_for_user(user_id)
     return render_template("bookings/history.html", bookings=bookings)
@@ -68,7 +61,6 @@ def booking_history():
 @bookings_web.route("/bookings/<int:booking_id>", methods=["GET"])
 @ui_login_required
 def booking_detail(booking_id):
-    """Display individual booking confirmation and status."""
     try:
         booking = booking_service.get_booking_by_id(booking_id)
     except ValueError as e:
@@ -86,7 +78,6 @@ def booking_detail(booking_id):
 @bookings_web.route("/bookings/<int:booking_id>/cancel", methods=["POST"])
 @ui_login_required
 def cancel_booking_ui(booking_id):
-    """Process booking cancellation enforcing the 1-hour cutoff."""
     user_id = g.current_user.get("user_id")
     user_role = g.current_user.get("role")
 
@@ -104,7 +95,6 @@ def cancel_booking_ui(booking_id):
 @bookings_web.route("/bookings/<int:booking_id>/pay", methods=["GET"])
 @ui_login_required
 def pay_booking_form(booking_id):
-    """Display payment mode selection form for a pending booking."""
     try:
         booking = booking_service.get_booking_by_id(booking_id)
     except ValueError as e:
@@ -116,7 +106,7 @@ def pay_booking_form(booking_id):
     if booking.user_id != user_id and user_role != "admin":
         return render_template("403.html"), 403
 
-    # Expiry / Status guard
+
     is_cancelled = booking.booking_status and booking.booking_status.status_name.lower() == "cancelled"
     is_expired = booking.payment_status and booking.payment_status.status_name.lower() == "expired"
     is_completed = booking.payment_status and booking.payment_status.status_name.lower() == "completed"

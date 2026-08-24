@@ -1,14 +1,8 @@
-"""
-PaymentMode, PaymentStatus, and PaymentTransaction entity model definitions.
-"""
 
 from config.database import db
 
 
 class PaymentMode(db.Model):
-    """
-    PaymentMode model representing available payment methods (e.g., Credit Card, UPI, Net Banking).
-    """
     __tablename__ = "payment_modes"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -18,7 +12,6 @@ class PaymentMode(db.Model):
     bookings = db.relationship("Booking", back_populates="payment_mode")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "mode_name": self.mode_name,
@@ -27,9 +20,6 @@ class PaymentMode(db.Model):
 
 
 class PaymentStatus(db.Model):
-    """
-    PaymentStatus model representing transaction statuses (e.g., Pending, Completed, Failed, Refunded).
-    """
     __tablename__ = "payment_statuses"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -38,7 +28,6 @@ class PaymentStatus(db.Model):
     bookings = db.relationship("Booking", back_populates="payment_status")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "status_name": self.status_name,
@@ -46,9 +35,6 @@ class PaymentStatus(db.Model):
 
 
 class PaymentTransaction(db.Model):
-    """
-    PaymentTransaction model representing financial payment processing records for bookings.
-    """
     __tablename__ = "payment_transactions"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -59,11 +45,10 @@ class PaymentTransaction(db.Model):
     paid_at = db.Column(db.DateTime(timezone=True), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=db.func.now())
 
-    # Relationships
+
     booking = db.relationship("Booking", back_populates="transactions")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "booking_id": self.booking_id,

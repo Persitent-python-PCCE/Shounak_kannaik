@@ -1,14 +1,8 @@
-"""
-EventSchedule entity model definition.
-"""
 
 from config.database import db
 
 
 class EventSchedule(db.Model):
-    """
-    EventSchedule model representing specific time/venue occurrences of an event.
-    """
     __tablename__ = "event_schedules"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -24,7 +18,6 @@ class EventSchedule(db.Model):
     bookings = db.relationship("Booking", back_populates="schedule", cascade="all, delete-orphan")
 
     def to_dict(self):
-        """Serialize model instance to dictionary."""
         return {
             "id": self.id,
             "event_id": self.event_id,

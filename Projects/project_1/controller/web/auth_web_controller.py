@@ -1,9 +1,3 @@
-"""
-Authentication Web UI Controller.
-
-Handles HTML views and form submissions for customer registration, login, and logout.
-Sets and deletes JWT access token cookies.
-"""
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from service.auth_service import AuthService
@@ -20,22 +14,17 @@ document_service = DocumentService(DocumentDAO())
 
 @auth_web.route("/register", methods=["GET"])
 def register():
-    """Display registration form with ID document upload."""
     form = RegisterForm()
     return render_template("auth/register.html", form=form)
 
 
 @auth_web.route("/register", methods=["POST"])
 def process_register():
-    """
-    Process user registration.
-    Enforces validate-file-before-user-creation discipline.
-    """
     form = RegisterForm()
     if not form.validate_on_submit():
         return render_template("auth/register.html", form=form)
 
-    # 1. Create user
+
     try:
         user_data = {
             "username": form.username.data.strip(),
@@ -45,7 +34,7 @@ def process_register():
         }
         user = auth_service.register(user_data)
 
-        # 2. Upload document if provided
+
         id_file = form.id_document.data
         if id_file and getattr(id_file, "filename", None):
             try:
@@ -74,14 +63,12 @@ def process_register():
 
 @auth_web.route("/login", methods=["GET"])
 def login():
-    """Display login form."""
     form = LoginForm()
     return render_template("auth/login.html", form=form)
 
 
 @auth_web.route("/login", methods=["POST"])
 def process_login():
-    """Process login, generate JWT, and set auth cookie."""
     form = LoginForm()
     if not form.validate_on_submit():
         return render_template("auth/login.html", form=form)
@@ -108,7 +95,6 @@ def process_login():
 
 @auth_web.route("/logout", methods=["POST"])
 def logout():
-    """Clear auth cookies and redirect to login."""
     flash("You have been successfully logged out.", "info")
     response = make_response(redirect(url_for("auth_web.login")))
     response.delete_cookie("access_token_cookie")

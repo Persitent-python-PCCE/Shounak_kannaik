@@ -1,7 +1,3 @@
-"""
-Models package initialization.
-Exports all SQLAlchemy models for migration discovery and unified imports.
-"""
 
 from models.user import User
 from models.venue import Venue, Section, Seat

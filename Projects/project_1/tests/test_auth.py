@@ -1,12 +1,8 @@
-"""
-Authentication tests.
-"""
 
 import io
 
 
 def test_register_success(client):
-    """Test registering a new user with valid document upload."""
     file_data = io.BytesIO(b"%PDF-1.4 dummy pdf document content")
     payload = {
         "username": "new_user",
@@ -21,13 +17,12 @@ def test_register_success(client):
     data = response.get_json()
     assert data["message"] == "User created successfully"
     assert data["user"]["username"] == "new_user"
-    assert data["user"]["role"] == "customer"  # Verify default role
+    assert data["user"]["role"] == "customer"                       
     assert "document" in data
     assert data["document"]["doc_type"] == "Aadhaar"
 
 
 def test_register_without_document_success(client):
-    """Test registering a new user without document succeeds with 201."""
     payload = {
         "username": "no_doc_user",
         "email": "nodoc@example.com",
@@ -43,7 +38,6 @@ def test_register_without_document_success(client):
 
 
 def test_register_invalid_file_extension(client):
-    """Test registering with an invalid file extension returns 400."""
     file_data = io.BytesIO(b"malicious script contents")
     payload = {
         "username": "bad_ext_user",
@@ -59,7 +53,6 @@ def test_register_invalid_file_extension(client):
 
 
 def test_register_invalid_phone_number(client):
-    """Test registering with a non-numeric phone number returns 400."""
     file_data = io.BytesIO(b"%PDF-1.4 dummy pdf document content")
     payload = {
         "username": "bad_phone_user",
@@ -75,7 +68,6 @@ def test_register_invalid_phone_number(client):
 
 
 def test_login_success(client, customer_user):
-    """Test successful login returns a valid JWT."""
     payload = {
         "username": "john_customer",
         "password": "Password123!"
@@ -88,7 +80,6 @@ def test_login_success(client, customer_user):
 
 
 def test_login_invalid_password(client, customer_user):
-    """Test login with wrong password returns 401."""
     payload = {
         "username": "john_customer",
         "password": "WrongPassword!"
@@ -100,13 +91,11 @@ def test_login_invalid_password(client, customer_user):
 
 
 def test_login_missing_fields(client):
-    """Test login with missing fields returns 400."""
     response = client.post("/auth/login", json={"username": "alone"})
     assert response.status_code == 400
 
 
 def test_protected_route_missing_token(client):
-    """Test accessing protected route without Authorization header returns 401."""
     response = client.get("/bookings/")
     assert response.status_code == 401
     data = response.get_json()
@@ -114,18 +103,15 @@ def test_protected_route_missing_token(client):
 
 
 def test_protected_route_malformed_header(client):
-    """Test accessing protected route with malformed Authorization header returns 401."""
     response = client.get("/bookings/", headers={"Authorization": "InvalidFormat123"})
     assert response.status_code == 401
 
 
 def test_protected_route_invalid_token(client):
-    """Test accessing protected route with invalid JWT returns 401."""
     response = client.get("/bookings/", headers={"Authorization": "Bearer not.a.valid.jwt"})
     assert response.status_code == 401
 
 
 def test_protected_route_valid_token(client, customer_headers):
-    """Test accessing protected route with valid token returns 200."""
     response = client.get("/bookings/", headers=customer_headers)
     assert response.status_code == 200

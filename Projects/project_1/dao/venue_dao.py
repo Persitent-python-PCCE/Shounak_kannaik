@@ -1,19 +1,9 @@
-"""
-Venue Data Access Object (DAO).
-
-This class is the ONLY place allowed to execute database queries (db.session,
-Model.query, etc.) related to Venue entities.
-"""
 
 from models.venue import Venue, Section, Seat
 from config.database import db
 
 
 class VenueDAO:
-    """
-    DAO handling database interactions for Venue records.
-    Holds no constructor arguments and interacts directly with the global db instance.
-    """
     def get_all_venues(self):
         stmt = db.select(Venue).options(
             db.selectinload(Venue.sections).selectinload(Section.seats)
@@ -31,11 +21,11 @@ class VenueDAO:
         db.session.add(venue)
         db.session.commit()
         return venue
-    
+
     def update_venue(self, venue):
         db.session.commit()
         return venue
-    
+
     def delete_venue(self, venue):
         db.session.delete(venue)
         db.session.commit()
@@ -43,7 +33,7 @@ class VenueDAO:
 
     def get_by_name(self, name):
         return Venue.query.filter_by(name=name).first()
-    
+
     def filter_venue(self, filters: dict):
         query = db.select(Venue).options(
             db.selectinload(Venue.sections).selectinload(Section.seats)
@@ -62,9 +52,9 @@ class VenueDAO:
             query = query.where(Venue.capacity >= filters["min_capacity"])
         if filters.get("max_capacity"):
             query = query.where(Venue.capacity <= filters["max_capacity"])
-        
+
         return db.session.execute(query).scalars().all()
-    
+
     def get_venue_by_name(self, name):
         venues = db.session.execute(
             db.select(Venue).options(
@@ -78,11 +68,12 @@ class VenueDAO:
         """
         Creates sections and programmatically generates seats for a venue.
         sections_data: list of dicts with keys 'name', 'price', 'row_count', 'seats_per_row'.
+        Seat format: Section Initial + Row Letter + Seat Number (e.g. DA10 for Diamond Section Row A Seat 10).
         """
         from models.venue import Section, Seat
 
         for sec_data in sections_data:
-            section_name = sec_data.get("name") or "Main"
+            section_name = (sec_data.get("name") or "Main").strip()
             price = float(sec_data.get("price") or 0.00)
             row_count = int(sec_data.get("row_count", 0))
             seats_per_row = int(sec_data.get("seats_per_row", 0))
@@ -98,10 +89,12 @@ class VenueDAO:
             db.session.add(section)
             db.session.flush()
 
+            sec_initial = section_name[0].upper() if section_name else "S"
+
             for r_idx in range(row_count):
                 row_name = self._generate_row_name(r_idx)
                 for s_num in range(1, seats_per_row + 1):
-                    seat_number = f"{row_name}{s_num}"
+                    seat_number = f"{sec_initial}{row_name}{s_num}"
                     seat = Seat(
                         section_id=section.id,
                         row=row_name,

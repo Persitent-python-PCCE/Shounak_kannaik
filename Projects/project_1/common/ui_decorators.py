@@ -1,9 +1,3 @@
-"""
-UI Authentication and Role-Based Access Control (RBAC) Decorators.
-
-Uses cookie-based (and header fallback) JWT token validation for the HTML UI layer.
-Redirects unauthenticated users to the UI login page and renders 403.html on role mismatch.
-"""
 
 from functools import wraps
 from flask import request, redirect, url_for, render_template, g
@@ -15,7 +9,6 @@ auth_service = AuthService(UserDAO())
 
 
 def get_token_from_request():
-    """Extract JWT token from cookie or Authorization header."""
     token = request.cookies.get("access_token_cookie")
     if token:
         return token
@@ -29,10 +22,6 @@ def get_token_from_request():
 
 
 def ui_login_required(f):
-    """
-    Decorator requiring an authenticated user for UI endpoints.
-    Redirects to the UI login page if authentication fails.
-    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         token = get_token_from_request()
@@ -53,10 +42,6 @@ def ui_login_required(f):
 
 
 def ui_role_required(*allowed_roles):
-    """
-    Decorator requiring specific role(s) for UI endpoints.
-    Renders 403.html if user is not authorized.
-    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
