@@ -173,7 +173,7 @@ def seed_database():
                         "description": "Standing area close to stage",
                         "price": 3500.00,
                         "seats": [
-                            {"row": "PITCH", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"GA{i}", "seat_type": "Regular"}
                             for i in range(1, 31)
                         ],
                     },
@@ -182,7 +182,7 @@ def seed_database():
                         "description": "Reserved seated lower tier",
                         "price": 6500.00,
                         "seats": [
-                            {"row": "LOWER-A", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"LA{i}", "seat_type": "Premium"}
                             for i in range(1, 21)
                         ],
                     },
@@ -191,7 +191,7 @@ def seed_database():
                         "description": "Elevated VIP lounge with hospitality",
                         "price": 18000.00,
                         "seats": [
-                            {"row": "VIP-DY", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"IA{i}", "seat_type": "VIP"}
                             for i in range(1, 11)
                         ],
                     },
@@ -210,7 +210,7 @@ def seed_database():
                         "description": "Action-packed heavy braking overtaking zone",
                         "price": 2500.00,
                         "seats": [
-                            {"row": "T1", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"TA{i}", "seat_type": "Regular"}
                             for i in range(1, 26)
                         ],
                     },
@@ -219,7 +219,7 @@ def seed_database():
                         "description": "Direct view of pitlane and starting grid",
                         "price": 7500.00,
                         "seats": [
-                            {"row": "PIT-A", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"MA{i}", "seat_type": "Premium"}
                             for i in range(1, 21)
                         ],
                     },
@@ -228,7 +228,7 @@ def seed_database():
                         "description": "All-inclusive luxury paddock hospitality",
                         "price": 25000.00,
                         "seats": [
-                            {"row": "VIP-FE", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"EA{i}", "seat_type": "VIP"}
                             for i in range(1, 11)
                         ],
                     },
@@ -247,7 +247,7 @@ def seed_database():
                         "description": "Floor arena seating near center stage",
                         "price": 2000.00,
                         "seats": [
-                            {"row": "FL-1", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"FA{i}", "seat_type": "Regular"}
                             for i in range(1, 26)
                         ],
                     },
@@ -256,7 +256,7 @@ def seed_database():
                         "description": "Tiered stadium seating with clear acoustics",
                         "price": 4500.00,
                         "seats": [
-                            {"row": "GOLD-A", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"GA{i}", "seat_type": "Premium"}
                             for i in range(1, 21)
                         ],
                     },
@@ -275,7 +275,7 @@ def seed_database():
                         "description": "East pavilion prime view",
                         "price": 1200.00,
                         "seats": [
-                            {"row": "A", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"SA{i}", "seat_type": "Regular"}
                             for i in range(1, 21)
                         ],
                     },
@@ -284,7 +284,7 @@ def seed_database():
                         "description": "Covered lower tier near pitch",
                         "price": 3500.00,
                         "seats": [
-                            {"row": "B", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "B", "number": f"SB{i}", "seat_type": "Premium"}
                             for i in range(1, 16)
                         ],
                     },
@@ -293,7 +293,7 @@ def seed_database():
                         "description": "VIP air-conditioned corporate suite",
                         "price": 12000.00,
                         "seats": [
-                            {"row": "VIP-1", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"PA{i}", "seat_type": "VIP"}
                             for i in range(1, 11)
                         ],
                     },
@@ -312,7 +312,7 @@ def seed_database():
                         "description": "Open-air energetic atmosphere seating",
                         "price": 800.00,
                         "seats": [
-                            {"row": "ES-1", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"EA{i}", "seat_type": "Regular"}
                             for i in range(1, 31)
                         ],
                     },
@@ -321,7 +321,7 @@ def seed_database():
                         "description": "Ground floor prime seats behind bowler's arm",
                         "price": 4000.00,
                         "seats": [
-                            {"row": "SP-A", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"SA{i}", "seat_type": "Premium"}
                             for i in range(1, 21)
                         ],
                     },
@@ -330,7 +330,7 @@ def seed_database():
                         "description": "Luxury hospitality suite with buffet",
                         "price": 15000.00,
                         "seats": [
-                            {"row": "CL", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"CA{i}", "seat_type": "VIP"}
                             for i in range(1, 11)
                         ],
                     },
@@ -349,7 +349,7 @@ def seed_database():
                         "description": "Elevated panoramic auditorium view",
                         "price": 1800.00,
                         "seats": [
-                            {"row": "BAL-1", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"BA{i}", "seat_type": "Regular"}
                             for i in range(1, 26)
                         ],
                     },
@@ -358,7 +358,7 @@ def seed_database():
                         "description": "Front stage view with acoustic engineering",
                         "price": 5500.00,
                         "seats": [
-                            {"row": "Stall-A", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"PA{i}", "seat_type": "VIP"}
                             for i in range(1, 16)
                         ],
                     },
@@ -377,7 +377,7 @@ def seed_database():
                         "description": "Public entrance seating area",
                         "price": 999.00,
                         "seats": [
-                            {"row": "N-1", "number": f"{i}", "seat_type": "Regular"}
+                            {"row": "A", "number": f"NA{i}", "seat_type": "Regular"}
                             for i in range(1, 26)
                         ],
                     },
@@ -386,7 +386,7 @@ def seed_database():
                         "description": "Prime grandstand covered seating",
                         "price": 4500.00,
                         "seats": [
-                            {"row": "W-1", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"WA{i}", "seat_type": "Premium"}
                             for i in range(1, 21)
                         ],
                     },
@@ -405,7 +405,7 @@ def seed_database():
                         "description": "Close to orchestra pit and stage",
                         "price": 2500.00,
                         "seats": [
-                            {"row": "ORC-A", "number": f"{i}", "seat_type": "Premium"}
+                            {"row": "A", "number": f"OA{i}", "seat_type": "Premium"}
                             for i in range(1, 16)
                         ],
                     },
@@ -414,7 +414,7 @@ def seed_database():
                         "description": "Private premier box seating",
                         "price": 8000.00,
                         "seats": [
-                            {"row": "BOX-1", "number": f"{i}", "seat_type": "VIP"}
+                            {"row": "A", "number": f"RA{i}", "seat_type": "VIP"}
                             for i in range(1, 9)
                         ],
                     },
@@ -450,16 +450,11 @@ def seed_database():
                     db.session.add(section)
                     db.session.flush()
 
-                    sec_initial = (s_data["name"].strip()[0] if s_data.get("name") else "S").upper()
                     for st_data in s_data.get("seats", []):
-                        raw_r = str(st_data["row"]).strip()
-                        r_letter = raw_r[-1].upper() if raw_r and raw_r[-1].isalpha() else "A"
-                        s_num = str(st_data["number"]).strip()
-                        seat_number = f"{sec_initial}{r_letter}{s_num}"
                         seat = Seat(
                             section_id=section.id,
-                            row=r_letter,
-                            number=seat_number,
+                            row=st_data["row"],
+                            number=st_data["number"],
                             seat_type=st_data.get("seat_type", "Regular"),
                         )
                         db.session.add(seat)
@@ -475,7 +470,41 @@ def seed_database():
                     ).scalar_one_or_none()
                     if existing_sec:
                         existing_sec.price = s_data.get("price", 0.00)
-                print(f"  * Updated section prices for venue: {venue.name}")
+                        existing_seats = db.session.execute(
+                            db.select(Seat).where(Seat.section_id == existing_sec.id).order_by(Seat.id)
+                        ).scalars().all()
+
+                        for idx, st_data in enumerate(s_data.get("seats", [])):
+                            if idx < len(existing_seats):
+                                existing_seats[idx].row = st_data["row"]
+                                existing_seats[idx].number = st_data["number"]
+                                existing_seats[idx].seat_type = st_data.get("seat_type", "Regular")
+                            else:
+                                new_seat = Seat(
+                                    section_id=existing_sec.id,
+                                    row=st_data["row"],
+                                    number=st_data["number"],
+                                    seat_type=st_data.get("seat_type", "Regular"),
+                                )
+                                db.session.add(new_seat)
+                    else:
+                        new_sec = Section(
+                            venue_id=venue.id,
+                            name=s_data["name"],
+                            description=s_data.get("description"),
+                            price=s_data.get("price", 0.00),
+                        )
+                        db.session.add(new_sec)
+                        db.session.flush()
+                        for st_data in s_data.get("seats", []):
+                            seat = Seat(
+                                section_id=new_sec.id,
+                                row=st_data["row"],
+                                number=st_data["number"],
+                                seat_type=st_data.get("seat_type", "Regular"),
+                            )
+                            db.session.add(seat)
+                print(f"  * Updated sections and seats for venue: {venue.name}")
 
             seeded_venues[venue.name] = venue
 
