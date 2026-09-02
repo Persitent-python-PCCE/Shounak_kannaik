@@ -3,51 +3,24 @@ pipeline {
 
     stages {
 
-        stage('Verify Project') {
+        stage('Show Repository Structure') {
             steps {
-                dir('Projects/project_1') {
-                    sh '''
-                        echo "Project directory:"
-                        pwd
+                sh '''
+                    echo "=== CURRENT DIRECTORY ==="
+                    pwd
 
-                        echo "Project files:"
-                        ls -la
+                    echo "=== TOP LEVEL ==="
+                    ls -la
 
-                        echo "Checking required files:"
-                        test -f Dockerfile
-                        test -f requirements.txt
-                        test -f app.py
+                    echo "=== DIRECTORIES ==="
+                    find . -maxdepth 3 -type d | sort
 
-                        echo "All required files found."
-                    '''
-                }
-            }
-        }
+                    echo "=== DOCKERFILES ==="
+                    find . -name Dockerfile -print
 
-        stage('Build Docker Image') {
-            steps {
-                dir('Projects/project_1') {
-                    sh '''
-                        docker build \
-                            -t shonk673/flask-app:latest \
-                            .
-                    '''
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry(
-                        'https://index.docker.io/v1/',
-                        'dockerhub-creds'
-                    ) {
-                        sh '''
-                            docker push shonk673/flask-app:latest
-                        '''
-                    }
-                }
+                    echo "=== JENKINSFILES ==="
+                    find . -name Jenkinsfile -print
+                '''
             }
         }
     }
