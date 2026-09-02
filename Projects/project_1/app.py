@@ -113,9 +113,14 @@ def create_app(config_class=DevelopmentConfig):
     @app.route("/")
     def index():
         return redirect(url_for("events_web.list_events"))
+
+    @app.route("/health")
+    def health():
+        return {"status": "healthy"}, 200
+
     return app
 
 
 if __name__ == "__main__":
     app = create_app(DevelopmentConfig)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
