@@ -68,7 +68,6 @@ class VenueDAO:
         """
         Creates sections and programmatically generates seats for a venue.
         sections_data: list of dicts with keys 'name', 'price', 'row_count', 'seats_per_row'.
-        Seat format: Section Initial + Row Letter + Seat Number (e.g. DA10 for Diamond Section Row A Seat 10).
         """
         from models.venue import Section, Seat
 
