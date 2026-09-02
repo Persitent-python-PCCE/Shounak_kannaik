@@ -3,26 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                echo 'GitHub repository checked out by Jenkins SCM'
-            }
-        }
-
-        stage('Install Dependencies & Run Tests') {
-            steps {
-                dir('Projects/project_1') {
-                    sh '''
-                        docker run --rm \
-                            -v "$PWD":/app \
-                            -w /app \
-                            python:3.12.4 \
-                            sh -c "pip install --no-cache-dir -r requirements.txt && pytest"
-                    '''
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 dir('Projects/project_1') {
@@ -35,6 +15,16 @@ pipeline {
             }
         }
 
+        stage('Run Tests') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        shonk673/flask-app:latest \
+                        pytest
+                '''
+            }
+        }
+
         stage('Push to Docker Hub') {
             steps {
                 script {
@@ -42,7 +32,9 @@ pipeline {
                         'https://index.docker.io/v1/',
                         'dockerhub-creds'
                     ) {
-                        sh 'docker push shonk673/flask-app:latest'
+                        sh '''
+                            docker push shonk673/flask-app:latest
+                        '''
                     }
                 }
             }
