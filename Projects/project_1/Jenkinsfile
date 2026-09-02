@@ -43,7 +43,6 @@
 // }
 pipeline {
     agent any
-
     stages {
         stage('Test Email') {
             steps {
@@ -51,7 +50,6 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             emailext(
