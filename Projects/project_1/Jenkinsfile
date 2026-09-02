@@ -55,7 +55,7 @@ pipeline {
     post {
         always {
             emailext(
-                to: 'YOUR_EMAIL@gmail.com',
+                to: 'shounakkannaik1234@gmail.com',
                 subject: 'Jenkins Email Test',
                 body: 'If you received this email, Jenkins SMTP is working!'
             )
