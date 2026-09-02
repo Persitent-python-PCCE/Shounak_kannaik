@@ -1,32 +1,25 @@
 pipeline {
     agent any
-
     stages {
 
-        stage('Checkout') {
+        stage('Show Repository Structure') {
             steps {
-                checkout scm
-            }
-        }
+                sh '''
+                    echo "=== CURRENT DIRECTORY ==="
+                    pwd
 
-        stage('Build Docker Image') {
-            steps {
-                dir('project_1') {
-                    sh 'docker build -t shonk673/flask-app:latest .'
-                }
-            }
-        }
+                    echo "=== TOP LEVEL ==="
+                    ls -la
 
-        stage('Push to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry(
-                        'https://index.docker.io/v1/',
-                        'dockerhub-creds'
-                    ) {
-                        sh 'docker push shonk673/flask-app:latest'
-                    }
-                }
+                    echo "=== DIRECTORIES ==="
+                    find . -maxdepth 3 -type d | sort
+
+                    echo "=== DOCKERFILES ==="
+                    find . -name Dockerfile -print
+
+                    echo "=== JENKINSFILES ==="
+                    find . -name Jenkinsfile -print
+                '''
             }
         }
     }
