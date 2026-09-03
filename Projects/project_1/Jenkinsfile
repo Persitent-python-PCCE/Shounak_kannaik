@@ -46,33 +46,33 @@ pipeline {
                 to: 'shounakkannaik1234@gmail.com',
                 subject: "✅ ${env.JOB_NAME} #${env.BUILD_NUMBER} - SUCCESS",
                 body: """
-            Build successful!
+                        Build successful!
 
-            Job: ${env.JOB_NAME}
-            Build: #${env.BUILD_NUMBER}
+                        Job: ${env.JOB_NAME}
+                        Build: #${env.BUILD_NUMBER}
 
-            Docker image:
-            shonk673/flask-app:latest
+                        Docker image:
+                        shonk673/flask-app:latest
 
-            Build URL:
-            ${env.BUILD_URL}
-            """
-                        )
-                    }
+                        Build URL:
+                        ${env.BUILD_URL}
+                        """
+                    )
+            }
 
-                    failure {
-                        emailext(
-                            to: 'shounakkannaik1234@gmail.com',
-                            subject: "❌ ${env.JOB_NAME} #${env.BUILD_NUMBER} - FAILED",
-                            body: """
-            Build FAILED!
+        failure {
+            emailext(
+                to: 'shounakkannaik1234@gmail.com',
+                subject: "❌ ${env.JOB_NAME} #${env.BUILD_NUMBER} - FAILED",
+                body: """
+                        Build FAILED!
 
-            Job: ${env.JOB_NAME}
-            Build: #${env.BUILD_NUMBER}
+                        Job: ${env.JOB_NAME}
+                        Build: #${env.BUILD_NUMBER}
 
-            Build URL:
-            ${env.BUILD_URL}
-            """
+                        Build URL:
+                        ${env.BUILD_URL}
+                        """
             )
         }
     }
